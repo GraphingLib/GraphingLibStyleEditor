@@ -1,0 +1,12 @@
+*.py
+!gl-style-editor/*.py
+
+**/__pycache__
+
+gl-style-editor/.vscode
+
+.vscode
+.venv
+.github
+**/.DS_Store
+**/*.lock
