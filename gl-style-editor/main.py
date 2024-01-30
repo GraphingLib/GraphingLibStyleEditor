@@ -3,7 +3,8 @@ import sys
 import graphinglib as gl
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from PyQt5.QtCore import Qt
+from PyQt5 import QtGui, QtWidgets
+from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtWidgets import (
     QApplication,
     QColorDialog,
@@ -18,6 +19,98 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+
+
+class ColorButton(QtWidgets.QPushButton):
+    colorChanged = pyqtSignal(str)
+
+    def __init__(self, *args, color=None, **kwargs):
+        super(ColorButton, self).__init__(*args, **kwargs)
+        self._color = None
+        self._default = color
+        self.pressed.connect(self.onColorPicker)
+        self.setColor(self._default)
+        self.setFixedSize(30, 30)  # Smaller color button
+
+    def setColor(self, color):
+        if color != self._color:
+            self._color = color
+            self.colorChanged.emit(color)
+        if self._color:
+            self.setStyleSheet("background-color: %s;" % self._color)
+        else:
+            self.setStyleSheet("")
+
+    def color(self):
+        return self._color
+
+    def onColorPicker(self):
+        dlg = QtWidgets.QColorDialog(self)
+        if self._color:
+            dlg.setCurrentColor(QtGui.QColor(self._color))
+
+        # Calculate the position to move the dialog next to the button
+        button_pos = self.mapToGlobal(self.pos())
+        dlg.move(button_pos.x(), button_pos.y())
+
+        if dlg.exec_():
+            self.setColor(dlg.currentColor().name())
+
+    def mousePressEvent(self, e):
+        if e.button() == Qt.RightButton:  # type: ignore
+            self.setColor(self._default)
+        return super(ColorButton, self).mousePressEvent(e)
+
+
+class ColorPickerWidget(QtWidgets.QWidget):
+    def __init__(
+        self,
+        window: QMainWindow,
+        label="Pick a colour:",
+        initial_color="#ff0000",
+        rc_label=[],
+    ):
+        super().__init__()
+        self.the_window = window
+        self.rc_label = rc_label
+        self.layout = QtWidgets.QHBoxLayout(self)  # type: ignore
+
+        self.label = QtWidgets.QLabel(label)
+        self.colorButton = ColorButton(color=initial_color)
+        self.colorEdit = QtWidgets.QLineEdit(initial_color)
+        self.colorEdit.setFixedWidth(60)  # Half the length
+        self.colorButton.colorChanged.connect(self.onColorChanged)
+        self.colorEdit.textChanged.connect(self.onColorEditTextChanged)
+
+        self.copyButton = QtWidgets.QPushButton("C")
+        self.pasteButton = QtWidgets.QPushButton("V")
+        self.copyButton.setFixedWidth(40)  # Shorter copy button
+        self.pasteButton.setFixedWidth(40)  # Shorter paste button
+        self.copyButton.clicked.connect(
+            lambda: QtWidgets.QApplication.clipboard().setText(self.colorEdit.text())  # type: ignore
+        )
+        self.pasteButton.clicked.connect(
+            lambda: self.colorEdit.setText(QtWidgets.QApplication.clipboard().text())  # type: ignore
+        )
+
+        self.layout.addWidget(self.label)
+        self.layout.addWidget(self.colorButton)
+        self.layout.addWidget(self.colorEdit)
+        self.layout.addWidget(self.copyButton)
+        self.layout.addWidget(self.pasteButton)
+
+    def onColorChanged(self, color):
+        self.colorEdit.setText(color)
+        rc = {label: color for label in self.rc_label}
+        self.the_window.rc.update(rc)
+        self.the_window.updateFigure()
+
+    def onColorEditTextChanged(self, text):
+        if QtGui.QColor(text).isValid():
+            self.colorButton.setColor(text)
+            rc = {label: text for label in self.rc_label}
+            self.the_window.rc.update(rc)
+            self.the_window.updateFigure()
 
 
 class MplCanvas(FigureCanvas):
@@ -92,35 +185,15 @@ class MainWindow(QMainWindow):
     def create_figure_tab(self):
         self.figureTabLayout = QVBoxLayout()
         # figure face color
-        self.figure_color_button = QPushButton("Change Background Color", self)
-        self.figure_color_button.clicked.connect(self.figure_color_clicked)
-        self.figureTabLayout.addWidget(self.figure_color_button)
+        self.figure_color_widget = ColorPickerWidget(
+            self,
+            label="Figure Color:",
+            rc_label=["figure.facecolor"],
+            initial_color=plt.rcParams.get("figure.facecolor", "#ffffff"),
+        )
+        self.figureTabLayout.addWidget(self.figure_color_widget)
         self.figureTab.setLayout(self.figureTabLayout)
 
-    # def create_axes_tab(self):
-    #     self.axesTabLayout = QVBoxLayout()
-    #     # axes face color
-    #     self.axes_face_color_button = QPushButton("Change Face Color", self)
-    #     self.axes_face_color_button.clicked.connect(self.axes_face_color_clicked)
-    #     self.axesTabLayout.addWidget(self.axes_face_color_button)
-    #     # axes edge color
-    #     self.axes_edge_color_button = QPushButton("Change Edge Color", self)
-    #     self.axes_edge_color_button.clicked.connect(self.axes_edge_color_clicked)
-    #     self.axesTabLayout.addWidget(self.axes_edge_color_button)
-    #     # ticks color
-    #     self.axes_ticks_color_button = QPushButton("Change Ticks Color", self)
-    #     self.axes_ticks_color_button.clicked.connect(self.axes_ticks_color_clicked)
-    #     self.axesTabLayout.addWidget(self.axes_ticks_color_button)
-    #     # grid color
-    #     self.axes_grid_color_button = QPushButton("Change Grid Color", self)
-    #     self.axes_grid_color_button.clicked.connect(self.axes_grid_color_clicked)
-    #     self.axesTabLayout.addWidget(self.axes_grid_color_button)
-    #     # grid on/off
-    #     self.axes_grid_on_button = QPushButton("Toggle Grid", self)
-    #     self.axes_grid_on_button.clicked.connect(self.axes_grid_on_clicked)
-    #     self.axesTabLayout.addWidget(self.axes_grid_on_button)
-
-    #     self.axesTab.setLayout(self.axesTabLayout)
     def create_axes_tab(self):
         self.axesTabLayout = QVBoxLayout()
 
@@ -135,19 +208,31 @@ class MainWindow(QMainWindow):
         self.axesTabLayout.addWidget(self.colors_line)
 
         # axes face color
-        self.axes_face_color_button = QPushButton("Change Face Color", self)
-        self.axes_face_color_button.clicked.connect(self.axes_face_color_clicked)
-        self.axesTabLayout.addWidget(self.axes_face_color_button)
+        self.axes_face_color_widget = ColorPickerWidget(
+            self,
+            label="Axes Face Color:",
+            rc_label=["axes.facecolor"],
+            initial_color=plt.rcParams.get("axes.facecolor", "#ffffff"),
+        )
+        self.axesTabLayout.addWidget(self.axes_face_color_widget)
 
         # axes edge color
-        self.axes_edge_color_button = QPushButton("Change Edge Color", self)
-        self.axes_edge_color_button.clicked.connect(self.axes_edge_color_clicked)
-        self.axesTabLayout.addWidget(self.axes_edge_color_button)
+        self.axes_edge_color_widget = ColorPickerWidget(
+            self,
+            label="Axes Edge Color:",
+            rc_label=["axes.edgecolor"],
+            initial_color=plt.rcParams.get("axes.edgecolor", "#000000"),
+        )
+        self.axesTabLayout.addWidget(self.axes_edge_color_widget)
 
         # ticks color
-        self.axes_ticks_color_button = QPushButton("Change Ticks Color", self)
-        self.axes_ticks_color_button.clicked.connect(self.axes_ticks_color_clicked)
-        self.axesTabLayout.addWidget(self.axes_ticks_color_button)
+        self.axes_ticks_color_widget = ColorPickerWidget(
+            self,
+            label="Ticks Color:",
+            rc_label=["xtick.color", "ytick.color"],
+            initial_color=plt.rcParams.get("xtick.color", "#000000"),
+        )
+        self.axesTabLayout.addWidget(self.axes_ticks_color_widget)
 
         # Section for Grid
         self.grid_label = QLabel("Grid:")
@@ -160,9 +245,13 @@ class MainWindow(QMainWindow):
         self.axesTabLayout.addWidget(self.grid_line)
 
         # grid color
-        self.axes_grid_color_button = QPushButton("Change Grid Color", self)
-        self.axes_grid_color_button.clicked.connect(self.axes_grid_color_clicked)
-        self.axesTabLayout.addWidget(self.axes_grid_color_button)
+        self.axes_grid_color_widget = ColorPickerWidget(
+            self,
+            label="Grid Color:",
+            rc_label=["grid.color"],
+            initial_color=plt.rcParams.get("grid.color", "#000000"),
+        )
+        self.axesTabLayout.addWidget(self.axes_grid_color_widget)
 
         # grid on/off
         self.axes_grid_on_button = QPushButton("Toggle Grid", self)
@@ -172,7 +261,7 @@ class MainWindow(QMainWindow):
         # grid line width (use slider)
         self.axes_grid_line_width_label = QLabel("Grid Line Width:")
         self.axesTabLayout.addWidget(self.axes_grid_line_width_label)
-        self.axes_grid_line_width_slider = QSlider(Qt.Horizontal)
+        self.axes_grid_line_width_slider = QSlider(Qt.Horizontal)  # type: ignore
         self.axes_grid_line_width_slider.setMinimum(0)
         self.axes_grid_line_width_slider.setMaximum(20)
         self.axes_grid_line_width_slider.setValue(1)
