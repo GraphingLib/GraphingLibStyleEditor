@@ -16,6 +16,7 @@ from PyQt5.QtWidgets import (
     QMainWindow,
     QPushButton,
     QSlider,
+    QSplitter,
     QTabWidget,
     QVBoxLayout,
     QWidget,
@@ -156,17 +157,17 @@ class MainWindow(QMainWindow):
         self.saveButton.setFixedWidth(200)
         self.mainLayout.addWidget(self.saveButton)
 
-        # Create tabs/canvas horizontally
-        self.horizLayout = QHBoxLayout()
-        self.mainLayout.addLayout(self.horizLayout)
+        # Create a horizontal splitter to contain the tab widget and canvas
+        self.splitter = QSplitter(Qt.Horizontal)  # type: ignore
 
-        # Main tab widget
+        # Create and add the tab widget and canvas
         self.tabWidget = QTabWidget()
-        self.horizLayout.addWidget(self.tabWidget)
-
-        # Matplotlib canvas
         self.canvas = GLCanvas(width=5, height=4, params=self.params)
-        self.horizLayout.addWidget(self.canvas)
+        self.splitter.addWidget(self.tabWidget)
+        self.splitter.addWidget(self.canvas)
+
+        # Set the splitter as the main layout widget
+        self.mainLayout.addWidget(self.splitter)
 
         # Combined Figure and Axes tab
         self.figureTab = QWidget()
@@ -439,12 +440,11 @@ class MainWindow(QMainWindow):
         self.updateFigure()
 
     def updateFigure(self):
-        # Re-create the canvas
-        self.horizLayout.removeWidget(self.canvas)
-        self.canvas.deleteLater()
+        # self.canvas.deleteLater()
         plt.close()
-        self.canvas = GLCanvas(width=5, height=4, params=self.params)
-        self.horizLayout.addWidget(self.canvas)
+        canvas = GLCanvas(width=5, height=4, params=self.params)
+        self.splitter.replaceWidget(1, canvas)
+        self.canvas = canvas
 
     def save(self):
         # get the figure style name
