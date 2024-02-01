@@ -69,11 +69,12 @@ class ColorPickerWidget(QWidget):
         window: QMainWindow,
         label="Pick a colour:",
         initial_color="#ff0000",
-        rc_label=[],
+        param_ids=[],
     ):
         super().__init__()
         self.the_window = window
-        self.rc_label = rc_label
+        self.param_section = param_ids[0]
+        self.param_labels = param_ids[1]
         self.layout = QHBoxLayout(self)  # type: ignore
 
         self.label = QLabel(label)
@@ -102,23 +103,22 @@ class ColorPickerWidget(QWidget):
 
     def onColorChanged(self, color):
         self.colorEdit.setText(color)
-        rc = {label: color for label in self.rc_label}
-        self.the_window.rc.update(rc)
+        rc = {label: color for label in self.param_labels}
+        self.the_window.params[self.param_section].update(rc)
         self.the_window.updateFigure()
 
     def onColorEditTextChanged(self, text):
         if QColor(text).isValid():
             self.colorButton.setColor(text)
-            rc = {label: text for label in self.rc_label}
-            self.the_window.rc.update(rc)
+            param = {label: text for label in self.param_labels}
+            self.the_window.params[self.param_section].update(param)
             self.the_window.updateFigure()
 
 
 class GLCanvas(FigureCanvas):
-    def __init__(self, parent=None, width=5, height=4, dpi=100, rc=None):
+    def __init__(self, params: dict, width=5, height=4):
+        self.params = params
         self.gl_fig = gl.Figure(size=(width, height), figure_style="dark")
-        if rc is not None:
-            self.gl_fig.update_rc_params(rc)
         self.compute_initial_figure()
 
         self.axes = self.gl_fig._axes
@@ -127,38 +127,46 @@ class GLCanvas(FigureCanvas):
 
     def compute_initial_figure(self):
         curve = gl.Curve([0, 1, 2, 3, 4], [10, 1, 20, 3, 40])
-        self.gl_fig.add_element(curve)
-        self.gl_fig._prepare_figure()
-        # curve_1 = gl.Curve.from_function(lambda x: 5 * np.sin(x), 0, 10)
-        # curve_2 = gl.Curve.from_function(
-        #     lambda x: 0.3 * (x - 4) ** 3 - 0.5 * x**2 + 20 * np.sin(1.5 * x), 0, 10
-        # )
-        # intersection_points = curve_1.intersection(
-        #     curve_2, marker_styles="P", colors="red", as_point_objects=True
-        # )
-        # cross_x_axis_points = curve_1.get_points_at_y(
-        #     0, color="blue", as_point_objects=True
-        # )
-        # self.gl_fig.add_element(curve_1, curve_2)
-        # self.gl_fig.add_element(*intersection_points, *cross_x_axis_points)
-        # self.gl_fig._prepare_figure()
+        curve2 = gl.Curve([0, 1, 2, 3, 4], [11, 2, 21, 4, 41]) + 1
+        curve3 = gl.Curve([0, 1, 2, 3, 4], [12, 3, 22, 5, 42]) + 2
+        self.gl_fig.add_element(curve, curve2, curve3)
+        self.gl_fig._prepare_figure(default_params=self.params)
 
 
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
+        # Updatable parameters
+        self.params = gl.file_manager.FileLoader("plain").load()
+
         # Main widget and layout
         self.mainWidget = QWidget(self)
-        self.mainLayout = QHBoxLayout(self.mainWidget)
+        self.mainLayout = QVBoxLayout(self.mainWidget)
+
+        # Add a field for the figure style name
+        self.figureStyleName = QLineEdit(self)
+        self.figureStyleName.setText("new_thing!")
+        self.figureStyleName.setFixedWidth(200)
+        self.mainLayout.addWidget(self.figureStyleName)
+
+        # Add save button
+        self.saveButton = QPushButton("Save", self)
+        self.saveButton.clicked.connect(self.save)
+        self.saveButton.setFixedWidth(200)
+        self.mainLayout.addWidget(self.saveButton)
+
+        # Create tabs/canvas horizontally
+        self.horizLayout = QHBoxLayout()
+        self.mainLayout.addLayout(self.horizLayout)
 
         # Main tab widget
         self.tabWidget = QTabWidget()
-        self.mainLayout.addWidget(self.tabWidget)
+        self.horizLayout.addWidget(self.tabWidget)
 
         # Matplotlib canvas
-        self.canvas = GLCanvas(self, width=5, height=4, dpi=100)
-        self.mainLayout.addWidget(self.canvas)
+        self.canvas = GLCanvas(width=5, height=4, params=self.params)
+        self.horizLayout.addWidget(self.canvas)
 
         # Combined Figure and Axes tab
         self.figureTab = QWidget()
@@ -193,9 +201,6 @@ class MainWindow(QMainWindow):
         # Set the main widget
         self.setCentralWidget(self.mainWidget)
 
-        # User updatable rc params
-        self.rc = {}
-
     def create_figure_tab(self):
         self.figureTabLayout = QVBoxLayout()
 
@@ -213,8 +218,8 @@ class MainWindow(QMainWindow):
         self.figure_color_widget = ColorPickerWidget(
             self,
             label="Figure Color:",
-            rc_label=["figure.facecolor"],
-            initial_color=plt.rcParams.get("figure.facecolor", "#ffffff"),
+            param_ids=["rc_params", ["figure.facecolor"]],
+            initial_color=self.params["rc_params"]["figure.facecolor"],
         )
         self.figureTabLayout.addWidget(self.figure_color_widget)
 
@@ -222,8 +227,8 @@ class MainWindow(QMainWindow):
         self.axes_face_color_widget = ColorPickerWidget(
             self,
             label="Axes Face Color:",
-            rc_label=["axes.facecolor"],
-            initial_color=plt.rcParams.get("axes.facecolor", "#ffffff"),
+            param_ids=["rc_params", ["axes.facecolor"]],
+            initial_color=self.params["rc_params"]["axes.facecolor"],
         )
         self.figureTabLayout.addWidget(self.axes_face_color_widget)
 
@@ -231,8 +236,8 @@ class MainWindow(QMainWindow):
         self.axes_edge_color_widget = ColorPickerWidget(
             self,
             label="Axes Edge Color:",
-            rc_label=["axes.edgecolor"],
-            initial_color=plt.rcParams.get("axes.edgecolor", "#000000"),
+            param_ids=["rc_params", ["axes.edgecolor"]],
+            initial_color=self.params["rc_params"]["axes.edgecolor"],
         )
         self.figureTabLayout.addWidget(self.axes_edge_color_widget)
 
@@ -240,8 +245,8 @@ class MainWindow(QMainWindow):
         self.axes_ticks_color_widget = ColorPickerWidget(
             self,
             label="Ticks Color:",
-            rc_label=["xtick.color", "ytick.color"],
-            initial_color=plt.rcParams.get("xtick.color", "#000000"),
+            param_ids=["rc_params", ["xtick.color", "ytick.color"]],
+            initial_color=self.params["rc_params"]["xtick.color"],
         )
         self.figureTabLayout.addWidget(self.axes_ticks_color_widget)
 
@@ -259,8 +264,8 @@ class MainWindow(QMainWindow):
         self.axes_grid_color_widget = ColorPickerWidget(
             self,
             label="Grid Color:",
-            rc_label=["grid.color"],
-            initial_color=plt.rcParams.get("grid.color", "#000000"),
+            param_ids=["rc_params", ["grid.color"]],
+            initial_color=self.params["rc_params"]["grid.color"],
         )
         self.figureTabLayout.addWidget(self.axes_grid_color_widget)
 
@@ -275,7 +280,7 @@ class MainWindow(QMainWindow):
         self.axes_grid_line_width_slider = QSlider(Qt.Horizontal)  # type: ignore
         self.axes_grid_line_width_slider.setMinimum(0)
         self.axes_grid_line_width_slider.setMaximum(20)
-        default_grid_width = int(plt.rcParams.get("grid.linewidth", 0.5) * 2)
+        default_grid_width = int(self.params["rc_params"]["grid.linewidth"] * 2)
         self.axes_grid_line_width_slider.setValue(default_grid_width)
         self.axes_grid_line_width_slider.setTickPosition(QSlider.TicksBelow)
         self.axes_grid_line_width_slider.setTickInterval(1)
@@ -292,7 +297,7 @@ class MainWindow(QMainWindow):
         self.axes_grid_line_style_dropdown.addItem("Dashed")
         self.axes_grid_line_style_dropdown.addItem("Dotted")
         self.axes_grid_line_style_dropdown.addItem("Dash-Dot")
-        default_grid_style = plt.rcParams.get("grid.linestyle", "-")
+        default_grid_style = self.params["rc_params"]["grid.linestyle"]
         self.axes_grid_line_style_dropdown.setCurrentIndex(
             ["-", "--", ":", "-."].index(default_grid_style)
         )
@@ -308,15 +313,37 @@ class MainWindow(QMainWindow):
         tabWidget = QTabWidget()
 
         # Example stubs for each sub-tab
-        curveTab = QWidget()
-        tabWidget.addTab(curveTab, "Curve")
+        self.curveTab = QWidget()
+        tabWidget.addTab(self.curveTab, "Curve")
         scatterTab = QWidget()
         tabWidget.addTab(scatterTab, "Scatter")
         histogramTab = QWidget()
         tabWidget.addTab(histogramTab, "Histogram")
 
+        # create the sub tabs
+        self.create_curve_tab()
+
         layout.addWidget(tabWidget)
         self.plotting1DTab.setLayout(layout)
+
+    def create_curve_tab(self):
+        # Create a layout for the curve sub-tab
+        layout = QVBoxLayout()
+
+        # create line_width slider
+        line_width_label = QLabel("Line Width:")
+        layout.addWidget(line_width_label)
+        line_width_slider = QSlider(Qt.Horizontal)  # type: ignore
+        line_width_slider.setMinimum(0)
+        line_width_slider.setMaximum(20)
+        line_width_slider.setValue(int(self.params["Curve"]["line_width"] * 2))
+        line_width_slider.setTickPosition(QSlider.TicksBelow)
+        line_width_slider.setTickInterval(1)
+        line_width_slider.valueChanged.connect(self.line_width_changed)
+        layout.addWidget(line_width_slider)
+
+        # Set the layout for the curve sub-tab
+        self.curveTab.setLayout(layout)
 
     def create_plotting_2d_tab(self):
         layout = QVBoxLayout()
@@ -392,27 +419,37 @@ class MainWindow(QMainWindow):
         self.otherGLTab.setLayout(layout)
 
     def axes_grid_on_clicked(self):
-        rc = {"axes.grid": not self.rc.get("axes.grid", False)}
-        self.rc.update(rc)
+        rc = {"axes.grid": not self.params["rc_params"].get("axes.grid", False)}
+        self.params["rc_params"].update(rc)
         self.updateFigure()
 
     def axes_grid_line_width_changed(self, value):
         rc = {"grid.linewidth": value / 2}
-        self.rc.update(rc)
+        self.params["rc_params"].update(rc)
         self.updateFigure()
 
     def axes_grid_line_style_changed(self, value):
         rc = {"grid.linestyle": ["-", "--", ":", "-."][value]}
-        self.rc.update(rc)
+        self.params["rc_params"].update(rc)
+        self.updateFigure()
+
+    def line_width_changed(self, value):
+        rc = {"line_width": value / 2}
+        self.params["Curve"].update(rc)
         self.updateFigure()
 
     def updateFigure(self):
         # Re-create the canvas
-        self.mainLayout.removeWidget(self.canvas)
+        self.horizLayout.removeWidget(self.canvas)
         self.canvas.deleteLater()
         plt.close()
-        self.canvas = GLCanvas(self, width=5, height=4, dpi=100, rc=self.rc)
-        self.mainLayout.addWidget(self.canvas)
+        self.canvas = GLCanvas(width=5, height=4, params=self.params)
+        self.horizLayout.addWidget(self.canvas)
+
+    def save(self):
+        # get the figure style name
+        name = self.figureStyleName.text()
+        gl.file_manager.FileSaver(name, self.params).save()
 
 
 app = QApplication(sys.argv)
