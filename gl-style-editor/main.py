@@ -72,6 +72,7 @@ class ColorPickerWidget(QWidget):
         label="Pick a colour:",
         initial_color="#ff0000",
         param_ids=[],
+        activated_on_init=True,
     ):
         super().__init__()
         self.the_window = window
@@ -96,6 +97,7 @@ class ColorPickerWidget(QWidget):
         self.pasteButton.clicked.connect(
             lambda: self.colorEdit.setText(QApplication.clipboard().text())  # type: ignore
         )
+        self.setEnabled(activated_on_init)
 
         self.layout.addWidget(self.label)
         self.layout.addWidget(self.colorButton)
@@ -116,40 +118,81 @@ class ColorPickerWidget(QWidget):
             self.the_window.params[self.param_section].update(param)
             self.the_window.updateFigure()
 
+    def getValue(self):
+        return self.colorButton._color
+
 
 class Activator(QWidget):
     def __init__(
         self,
         label,
         window: QMainWindow,
-        *widgets,
+        widget,
         param_ids=[],
         condition="",
     ):
         super(Activator, self).__init__()
         self.the_window = window
-        self.widgets = widgets
+        self.widget = widget
         self.param_section = param_ids[0]
         self.param_label = param_ids[1]
         self.layout = QHBoxLayout(self)
+        self.condition = condition
 
         self.checkbox = QCheckBox(label)
         self.checkbox.setChecked(
             self.the_window.params[self.param_section][self.param_label] == condition
         )
+        self.checkbox.stateChanged.connect(self.onStateChanged)
         self.layout.addWidget(self.checkbox)
 
-    def onChangeState(self, state):
+    def onStateChanged(self, state):
+        self.widget.setEnabled(True if state != 2 else False)
         rc = {
-            (
-                self.the_window.params[self.param_section][self.param_label]
-                == self.condition
-                if 2
-                else ""
-            )
+            self.param_label: (self.condition if state == 2 else self.widget.getValue())
         }
-        self.the_window.params.update(rc)
+        self.the_window.params[self.param_section].update(rc)
         self.the_window.updateFigure()
+
+
+class Slider(QWidget):
+    def __init__(
+        self,
+        window: QMainWindow,
+        label,
+        mini,
+        maxi,
+        tick_interval,
+        param_ids=[],
+        initial_value=0,
+        activated_on_init=True,
+    ):
+        super(Slider, self).__init__()
+        self.the_window = window
+        self.param_section = param_ids[0]
+        self.param_label = param_ids[1]
+
+        self.label = QLabel(label)
+        self.slider = QSlider(Qt.Horizontal)
+        self.slider.setMinimum(mini)
+        self.slider.setMaximum(maxi)
+        self.slider.setValue(initial_value * 2)
+        self.slider.setTickPosition(QSlider.TicksBelow)
+        self.slider.setTickInterval(tick_interval)
+        self.slider.valueChanged.connect(self.onValueChanged)
+        self.setEnabled(activated_on_init)
+
+        self.layout = QHBoxLayout(self)
+        self.layout.addWidget(self.label)
+        self.layout.addWidget(self.slider)
+
+    def onValueChanged(self, value):
+        rc = {self.param_label: value / 2}
+        self.the_window.params[self.param_section].update(rc)
+        self.the_window.updateFigure()
+
+    def getValue(self):
+        return self.slider.value() / 2
 
 
 class GLCanvas(FigureCanvas):
@@ -379,15 +422,15 @@ class MainWindow(QMainWindow):
         layout.addWidget(curve_line)
 
         # create line_width slider
-        line_width_label = QLabel("Line Width:")
-        layout.addWidget(line_width_label)
-        line_width_slider = QSlider(Qt.Horizontal)  # type: ignore
-        line_width_slider.setMinimum(0)
-        line_width_slider.setMaximum(20)
-        line_width_slider.setValue(int(self.params["Curve"]["line_width"] * 2))
-        line_width_slider.setTickPosition(QSlider.TicksBelow)
-        line_width_slider.setTickInterval(1)
-        line_width_slider.valueChanged.connect(self.line_width_changed)
+        line_width_slider = Slider(
+            self,
+            "Line Width:",
+            0,
+            20,
+            1,
+            ["Curve", "line_width"],
+            self.params["Curve"]["line_width"],
+        )
         layout.addWidget(line_width_slider)
 
         # create linestyle drop down menu
@@ -415,13 +458,7 @@ class MainWindow(QMainWindow):
         # create errorbar cap width slider
         cap_width_label = QLabel("Cap Width:")
         layout.addWidget(cap_width_label)
-        cap_width_slider = QSlider(Qt.Horizontal)  # type: ignore
-        cap_width_slider.setMinimum(0)
-        cap_width_slider.setMaximum(20)
-        cap_width_slider.setValue(int(self.params["Curve"]["cap_width"] * 2))
-        cap_width_slider.setTickPosition(QSlider.TicksBelow)
-        cap_width_slider.setTickInterval(1)
-        cap_width_slider.valueChanged.connect(self.cap_width_changed)
+        cap_width_slider = Slider(self, "Cap Width:", 0, 20, 1, ["Curve", "cap_width"])
         layout.addWidget(cap_width_slider)
 
         # create errorbar color button and "same as curve" checkbox
@@ -435,9 +472,8 @@ class MainWindow(QMainWindow):
             "Color",
             errorbars_initial_color,
             ["Curve", ["errorbars_color"]],
-        )
-        errorbars_color.setEnabled(
-            self.params["Curve"]["errorbars_color"] != "same as curve"
+            activated_on_init=self.params["Curve"]["errorbars_color"]
+            != "same as curve",
         )
         errorbars_color_checkbox = Activator(
             "Same as curve",
@@ -446,50 +482,61 @@ class MainWindow(QMainWindow):
             param_ids=["Curve", "errorbars_color"],
             condition="same as curve",
         )
-        errorbars_color_checkbox.checkbox.stateChanged.connect(
-            lambda state: errorbars_color.setEnabled(state != 2)
-        )
-        errorbars_color_checkbox.checkbox.stateChanged.connect(
-            self.errorbars_color_checkbox_changed
-        )
         layout.addWidget(errorbars_color)
         layout.addWidget(errorbars_color_checkbox)
 
         # create errorbars line width slider and "same as curve" checkbox
-        errorbars_initial_line_width = (
-            4
+        initial_errorbars_line_width = (
+            self.params["Curve"]["line_width"]
             if self.params["Curve"]["errorbars_line_width"] == "same as curve"
-            else self.params["Curve"]["errorbars_line_width"] * 2
+            else self.params["Curve"]["errorbars_line_width"]
         )
-        errorbars_line_width_label = QLabel("Line Width")
-        layout.addWidget(errorbars_line_width_label)
-        errorbars_line_width_slider = QSlider(Qt.Horizontal)
-        errorbars_line_width_slider.setMinimum(0)
-        errorbars_line_width_slider.setMaximum(20)
-        errorbars_line_width_slider.setValue(errorbars_initial_line_width)
-        errorbars_line_width_slider.setTickPosition(QSlider.TicksBelow)
-        errorbars_line_width_slider.setTickInterval(1)
-        errorbars_line_width_slider.valueChanged.connect(
-            self.errorbars_line_width_changed
+        errorbars_line_width_slider = Slider(
+            self,
+            "Line Width:",
+            0,
+            20,
+            1,
+            ["Curve", "errorbars_line_width"],
+            initial_errorbars_line_width,
+            activated_on_init=self.params["Curve"]["errorbars_line_width"]
+            != "same as curve",
+        )
+        errorbars_line_width_checkbox = Activator(
+            "Same as curve",
+            self,
+            errorbars_line_width_slider,
+            param_ids=["Curve", "errorbars_line_width"],
+            condition="same as curve",
         )
         layout.addWidget(errorbars_line_width_slider)
+        layout.addWidget(errorbars_line_width_checkbox)
 
         # create errorbars cap thickness slider and "same as curve" checkbox
         initial_cap_thickness = (
-            4
+            self.params["Curve"]["line_width"]
             if self.params["Curve"]["cap_thickness"] == "same as curve"
-            else self.params["Curve"]["cap_thickness"] * 2
+            else self.params["Curve"]["cap_thickness"]
         )
-        cap_thickness_label = QLabel("Cap Thickness")
-        layout.addWidget(cap_thickness_label)
-        cap_thickness_slider = QSlider(Qt.Horizontal)
-        cap_thickness_slider.setMinimum(0)
-        cap_thickness_slider.setMaximum(20)
-        cap_thickness_slider.setValue(initial_cap_thickness)
-        cap_thickness_slider.setTickPosition(QSlider.TicksBelow)
-        cap_thickness_slider.setTickInterval(1)
-        cap_thickness_slider.valueChanged.connect(self.cap_thickness_changed)
+        cap_thickness_slider = Slider(
+            self,
+            "Cap Thickness:",
+            0,
+            20,
+            1,
+            ["Curve", "cap_thickness"],
+            initial_cap_thickness,
+            activated_on_init=self.params["Curve"]["cap_thickness"] != "same as curve",
+        )
+        cap_thickness_checkbox = Activator(
+            "Same as curve",
+            self,
+            cap_thickness_slider,
+            ["Curve", "cap_thickness"],
+            "same as curve",
+        )
         layout.addWidget(cap_thickness_slider)
+        layout.addWidget(cap_thickness_checkbox)
 
         # Set the layout for the curve sub-tab
         self.curveTab.setLayout(layout)
