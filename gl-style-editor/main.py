@@ -1,7 +1,7 @@
 import sys
 
 import graphinglib as gl
-import matplotlib.pyplot as plt
+from matplotlib.pyplot import close
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PyQt5.QtCore import Qt, pyqtSignal
 from PyQt5.QtGui import QColor
@@ -125,8 +125,8 @@ class ColorPickerWidget(QWidget):
 class Activator(QWidget):
     def __init__(
         self,
-        label,
         window: QMainWindow,
+        label,
         widget,
         param_ids=[],
         condition="",
@@ -193,6 +193,43 @@ class Slider(QWidget):
 
     def getValue(self):
         return self.slider.value() / 2
+
+
+class Dropdown(QWidget):
+    def __init__(
+        self,
+        window: QMainWindow,
+        label,
+        items=[],
+        param_values=[],
+        param_ids=[],
+        initial_item=0,
+        activated_on_init=True,
+    ):
+        super(Dropdown, self).__init__()
+        self.the_window = window
+        self.param_section = param_ids[0]
+        self.param_label = param_ids[1]
+        self.param_values = param_values
+
+        self.label = QLabel(label)
+        self.dropdown = QComboBox()
+        self.dropdown.addItems(items)
+        self.dropdown.setCurrentIndex(self.param_values.index(initial_item))
+        self.dropdown.currentIndexChanged.connect(self.onCurrentIndexChanged)
+        self.setEnabled(activated_on_init)
+
+        self.layout = QHBoxLayout(self)
+        self.layout.addWidget(self.label)
+        self.layout.addWidget(self.dropdown)
+
+    def getValue(self):
+        return self.dropdown.currentIndex()
+
+    def onCurrentIndexChanged(self, index):
+        rc = {self.param_label: self.param_values[index]}
+        self.the_window.params[self.param_section].update(rc)
+        self.the_window.updateFigure()
 
 
 class GLCanvas(FigureCanvas):
@@ -284,6 +321,7 @@ class MainWindow(QMainWindow):
 
     def create_figure_tab(self):
         self.figureTabLayout = QVBoxLayout()
+        self.figureTabLayout.setAlignment(Qt.AlignTop)
 
         # Section for Colors
         self.colors_label = QLabel("Colors:")
@@ -410,6 +448,7 @@ class MainWindow(QMainWindow):
     def create_curve_tab(self):
         # Create a layout for the curve sub-tab
         layout = QVBoxLayout()
+        layout.setAlignment(Qt.AlignTop)
 
         # section for curve
         curve_label = QLabel("Curve:")
@@ -434,15 +473,14 @@ class MainWindow(QMainWindow):
         layout.addWidget(line_width_slider)
 
         # create linestyle drop down menu
-        line_style_label = QLabel("Line style:")
-        layout.addWidget(line_style_label)
-        line_style_dropdown = QComboBox()
-        line_style_dropdown.addItems(["Solid", "Dashed", "Dotted", "Dash-Dot"])
-        default_line_style = self.params["Curve"]["line_style"]
-        line_style_dropdown.setCurrentIndex(
-            ["-", "--", ":", "-."].index(default_line_style)
+        line_style_dropdown = Dropdown(
+            self,
+            "Line Style:",
+            ["Solid", "Dashed", "Dotted", "Dash-Dot"],
+            ["-", "--", ":", "-."],
+            ["Curve", "line_style"],
+            self.params["Curve"]["line_style"],
         )
-        line_style_dropdown.currentIndexChanged.connect(self.line_style_changed)
         layout.addWidget(line_style_dropdown)
 
         # section for curve errorbars
@@ -476,8 +514,8 @@ class MainWindow(QMainWindow):
             != "same as curve",
         )
         errorbars_color_checkbox = Activator(
-            "Same as curve",
             self,
+            "Same as curve",
             errorbars_color,
             param_ids=["Curve", "errorbars_color"],
             condition="same as curve",
@@ -503,8 +541,8 @@ class MainWindow(QMainWindow):
             != "same as curve",
         )
         errorbars_line_width_checkbox = Activator(
-            "Same as curve",
             self,
+            "Same as curve",
             errorbars_line_width_slider,
             param_ids=["Curve", "errorbars_line_width"],
             condition="same as curve",
@@ -529,8 +567,8 @@ class MainWindow(QMainWindow):
             activated_on_init=self.params["Curve"]["cap_thickness"] != "same as curve",
         )
         cap_thickness_checkbox = Activator(
-            "Same as curve",
             self,
+            "Same as curve",
             cap_thickness_slider,
             ["Curve", "cap_thickness"],
             "same as curve",
@@ -664,7 +702,7 @@ class MainWindow(QMainWindow):
 
     def updateFigure(self):
         # self.canvas.deleteLater()
-        plt.close()
+        close()
         canvas = GLCanvas(width=5, height=4, params=self.params)
         self.splitter.replaceWidget(1, canvas)
         self.canvas = canvas
