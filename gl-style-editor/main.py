@@ -20,6 +20,7 @@ from PyQt5.QtWidgets import (
     QTabWidget,
     QVBoxLayout,
     QWidget,
+    QCheckBox,
 )
 
 
@@ -116,6 +117,41 @@ class ColorPickerWidget(QWidget):
             self.the_window.updateFigure()
 
 
+class Activator(QWidget):
+    def __init__(
+        self,
+        label,
+        window: QMainWindow,
+        *widgets,
+        param_ids=[],
+        condition="",
+    ):
+        super(Activator, self).__init__()
+        self.the_window = window
+        self.widgets = widgets
+        self.param_section = param_ids[0]
+        self.param_label = param_ids[1]
+        self.layout = QHBoxLayout(self)
+
+        self.checkbox = QCheckBox(label)
+        self.checkbox.setChecked(
+            self.the_window.params[self.param_section][self.param_label] == condition
+        )
+        self.layout.addWidget(self.checkbox)
+
+    def onChangeState(self, state):
+        rc = {
+            (
+                self.the_window.params[self.param_section][self.param_label]
+                == self.condition
+                if 2
+                else ""
+            )
+        }
+        self.the_window.params.update(rc)
+        self.the_window.updateFigure()
+
+
 class GLCanvas(FigureCanvas):
     def __init__(self, params: dict, width=5, height=4):
         self.params = params
@@ -128,6 +164,7 @@ class GLCanvas(FigureCanvas):
 
     def compute_initial_figure(self):
         curve = gl.Curve([0, 1, 2, 3, 4], [10, 1, 20, 3, 40])
+        curve.add_errorbars(y_error=1)
         curve2 = gl.Curve([0, 1, 2, 3, 4], [11, 2, 21, 4, 41]) + 1
         curve3 = gl.Curve([0, 1, 2, 3, 4], [12, 3, 22, 5, 42]) + 2
         self.gl_fig.add_element(curve, curve2, curve3)
@@ -331,6 +368,16 @@ class MainWindow(QMainWindow):
         # Create a layout for the curve sub-tab
         layout = QVBoxLayout()
 
+        # section for curve
+        curve_label = QLabel("Curve:")
+        curve_label.setStyleSheet("font-weight: bold;")
+        layout.addWidget(curve_label)
+
+        curve_line = QFrame()
+        curve_line.setFrameShape(QFrame.HLine)
+        curve_line.setFrameShadow(QFrame.Sunken)
+        layout.addWidget(curve_line)
+
         # create line_width slider
         line_width_label = QLabel("Line Width:")
         layout.addWidget(line_width_label)
@@ -342,6 +389,107 @@ class MainWindow(QMainWindow):
         line_width_slider.setTickInterval(1)
         line_width_slider.valueChanged.connect(self.line_width_changed)
         layout.addWidget(line_width_slider)
+
+        # create linestyle drop down menu
+        line_style_label = QLabel("Line style:")
+        layout.addWidget(line_style_label)
+        line_style_dropdown = QComboBox()
+        line_style_dropdown.addItems(["Solid", "Dashed", "Dotted", "Dash-Dot"])
+        default_line_style = self.params["Curve"]["line_style"]
+        line_style_dropdown.setCurrentIndex(
+            ["-", "--", ":", "-."].index(default_line_style)
+        )
+        line_style_dropdown.currentIndexChanged.connect(self.line_style_changed)
+        layout.addWidget(line_style_dropdown)
+
+        # section for curve errorbars
+        errorbar_label = QLabel("Errorbars:")
+        errorbar_label.setStyleSheet("font-weight: bold;")
+        layout.addWidget(errorbar_label)
+
+        errorbar_line = QFrame()
+        errorbar_line.setFrameShape(QFrame.HLine)
+        errorbar_line.setFrameShadow(QFrame.Sunken)
+        layout.addWidget(errorbar_line)
+
+        # create errorbar cap width slider
+        cap_width_label = QLabel("Cap Width:")
+        layout.addWidget(cap_width_label)
+        cap_width_slider = QSlider(Qt.Horizontal)  # type: ignore
+        cap_width_slider.setMinimum(0)
+        cap_width_slider.setMaximum(20)
+        cap_width_slider.setValue(int(self.params["Curve"]["cap_width"] * 2))
+        cap_width_slider.setTickPosition(QSlider.TicksBelow)
+        cap_width_slider.setTickInterval(1)
+        cap_width_slider.valueChanged.connect(self.cap_width_changed)
+        layout.addWidget(cap_width_slider)
+
+        # create errorbar color button and "same as curve" checkbox
+        errorbars_initial_color = (
+            "#000000"
+            if self.params["Curve"]["errorbars_color"] == "same as curve"
+            else self.params["Curve"]["errorbars_color"]
+        )
+        errorbars_color = ColorPickerWidget(
+            self,
+            "Color",
+            errorbars_initial_color,
+            ["Curve", ["errorbars_color"]],
+        )
+        errorbars_color.setEnabled(
+            self.params["Curve"]["errorbars_color"] != "same as curve"
+        )
+        errorbars_color_checkbox = Activator(
+            "Same as curve",
+            self,
+            errorbars_color,
+            param_ids=["Curve", "errorbars_color"],
+            condition="same as curve",
+        )
+        errorbars_color_checkbox.checkbox.stateChanged.connect(
+            lambda state: errorbars_color.setEnabled(state != 2)
+        )
+        errorbars_color_checkbox.checkbox.stateChanged.connect(
+            self.errorbars_color_checkbox_changed
+        )
+        layout.addWidget(errorbars_color)
+        layout.addWidget(errorbars_color_checkbox)
+
+        # create errorbars line width slider and "same as curve" checkbox
+        errorbars_initial_line_width = (
+            4
+            if self.params["Curve"]["errorbars_line_width"] == "same as curve"
+            else self.params["Curve"]["errorbars_line_width"] * 2
+        )
+        errorbars_line_width_label = QLabel("Line Width")
+        layout.addWidget(errorbars_line_width_label)
+        errorbars_line_width_slider = QSlider(Qt.Horizontal)
+        errorbars_line_width_slider.setMinimum(0)
+        errorbars_line_width_slider.setMaximum(20)
+        errorbars_line_width_slider.setValue(errorbars_initial_line_width)
+        errorbars_line_width_slider.setTickPosition(QSlider.TicksBelow)
+        errorbars_line_width_slider.setTickInterval(1)
+        errorbars_line_width_slider.valueChanged.connect(
+            self.errorbars_line_width_changed
+        )
+        layout.addWidget(errorbars_line_width_slider)
+
+        # create errorbars cap thickness slider and "same as curve" checkbox
+        initial_cap_thickness = (
+            4
+            if self.params["Curve"]["cap_thickness"] == "same as curve"
+            else self.params["Curve"]["cap_thickness"] * 2
+        )
+        cap_thickness_label = QLabel("Cap Thickness")
+        layout.addWidget(cap_thickness_label)
+        cap_thickness_slider = QSlider(Qt.Horizontal)
+        cap_thickness_slider.setMinimum(0)
+        cap_thickness_slider.setMaximum(20)
+        cap_thickness_slider.setValue(initial_cap_thickness)
+        cap_thickness_slider.setTickPosition(QSlider.TicksBelow)
+        cap_thickness_slider.setTickInterval(1)
+        cap_thickness_slider.valueChanged.connect(self.cap_thickness_changed)
+        layout.addWidget(cap_thickness_slider)
 
         # Set the layout for the curve sub-tab
         self.curveTab.setLayout(layout)
@@ -436,6 +584,34 @@ class MainWindow(QMainWindow):
 
     def line_width_changed(self, value):
         rc = {"line_width": value / 2}
+        self.params["Curve"].update(rc)
+        self.updateFigure()
+
+    def line_style_changed(self, value):
+        rc = {"line_style": ["-", "--", ":", "-."][value]}
+        self.params["Curve"].update(rc)
+        self.updateFigure()
+
+    def cap_width_changed(self, value):
+        rc = {"cap_width": value / 2}
+        self.params["Curve"].update(rc)
+        self.updateFigure()
+
+    def errorbars_color_checkbox_changed(self, value):
+        if value == 2:
+            rc = {"errorbars_color": "same as curve"}
+            self.params["Curve"].update(rc)
+            self.updateFigure()
+        else:
+            pass
+
+    def errorbars_line_width_changed(self, value):
+        rc = {"errorbars_line_width": value / 2}
+        self.params["Curve"].update(rc)
+        self.updateFigure()
+
+    def cap_thickness_changed(self, value):
+        rc = {"cap_thickness": value / 2}
         self.params["Curve"].update(rc)
         self.updateFigure()
 
