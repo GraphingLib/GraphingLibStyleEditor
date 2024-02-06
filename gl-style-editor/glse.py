@@ -13,6 +13,7 @@ from PyQt5.QtWidgets import (
     QTabWidget,
     QVBoxLayout,
     QWidget,
+    QScrollArea,
 )
 
 from .plotting_1d_tab import create_plotting_1d_tab
@@ -80,8 +81,13 @@ class MainWindow(QMainWindow):
 
         # Combined Figure and Axes tab
         self.figureTab = QWidget()
-        self.tabWidget.addTab(self.figureTab, "Figure")
-        create_figure_tab(self)
+        figureTabLayout = create_figure_tab(self)
+        self.figureTab.setLayout(figureTabLayout)
+        self.figureTabScrollArea = QScrollArea()
+        self.figureTabScrollArea.setWidgetResizable(True)
+        self.figureTabScrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.figureTabScrollArea.setWidget(self.figureTab)
+        self.tabWidget.addTab(self.figureTabScrollArea, "Figure")
 
         # 1D Plotting tab with nested tabs
         self.plotting1DTab = QWidget()

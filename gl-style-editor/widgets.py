@@ -180,7 +180,7 @@ class Slider(QWidget):
             initial_value = 0
         else:
             initial_value = self.the_window.params[self.param_section][self.param_label]
-        self.slider.setValue(initial_value * 2)
+        self.slider.setValue(int(initial_value * 2))
         self.slider.setTickPosition(QSlider.TicksBelow)
         self.slider.setTickInterval(tick_interval)
         self.slider.valueChanged.connect(self.onValueChanged)
@@ -242,9 +242,9 @@ class Dropdown(QWidget):
             and "same as"
             in self.the_window.params[self.param_section][self.param_label]
         ):
-            is_enabled = True
-        else:
             is_enabled = False
+        else:
+            is_enabled = True
         self.setEnabled(is_enabled)
 
         self.layout = QHBoxLayout(self)
@@ -256,5 +256,26 @@ class Dropdown(QWidget):
 
     def onCurrentIndexChanged(self, index):
         rc = {self.param_label: self.param_values[index]}
+        self.the_window.params[self.param_section].update(rc)
+        self.the_window.updateFigure()
+
+
+class CheckBox(QWidget):
+    def __init__(self, window: QMainWindow, label, param_ids=[]):
+        super(CheckBox, self).__init__()
+        self.checkbox = QCheckBox(label)
+        self.the_window = window
+        self.param_section = param_ids[0]
+        self.param_label = param_ids[1]
+
+        self.checkbox.setChecked(
+            self.the_window.params[self.param_section][self.param_label]
+        )
+        self.checkbox.stateChanged.connect(self.onStateChanged)
+        self.layout = QHBoxLayout(self)
+        self.layout.addWidget(self.checkbox)
+
+    def onStateChanged(self, state):
+        rc = {self.param_label: True if state == 2 else False}
         self.the_window.params[self.param_section].update(rc)
         self.the_window.updateFigure()
