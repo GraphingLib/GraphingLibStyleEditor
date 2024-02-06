@@ -6,13 +6,9 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QApplication,
-    QComboBox,
-    QFrame,
-    QLabel,
     QLineEdit,
     QMainWindow,
     QPushButton,
-    QSlider,
     QSplitter,
     QTabWidget,
     QVBoxLayout,
