@@ -21,6 +21,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QWidget,
     QCheckBox,
+    QScrollArea,
 )
 
 
@@ -245,7 +246,7 @@ class GLCanvas(FigureCanvas):
     def compute_initial_figure(self):
         curve = gl.Curve([0, 1, 2, 3, 4], [10, 1, 20, 3, 40])
         curve.area_between(0, 2, True)
-        # curve.add_errorbars(y_error=1)
+        curve.add_errorbars(y_error=1)
         # curve2 = gl.Curve([0, 1, 2, 3, 4], [11, 2, 21, 4, 41]) + 1
         # curve3 = gl.Curve([0, 1, 2, 3, 4], [12, 3, 22, 5, 42]) + 2
         self.gl_fig.add_element(curve)  # , curve2, curve3)
@@ -432,16 +433,23 @@ class MainWindow(QMainWindow):
         layout = QVBoxLayout()
         tabWidget = QTabWidget()
 
-        # Example stubs for each sub-tab
-        self.curveTab = QWidget()
-        tabWidget.addTab(self.curveTab, "Curve")
+        # curve tab
+        curveTabLayout = self.create_curve_tab()
+        curveTab = QWidget()
+        curveTab.setLayout(curveTabLayout)
+        curveTabScrollArea = QScrollArea()
+        curveTabScrollArea.setWidgetResizable(True)
+        curveTabScrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        curveTabScrollArea.setWidget(curveTab)
+        tabWidget.addTab(curveTabScrollArea, "Curve")
+
+        # scatter tab
         scatterTab = QWidget()
         tabWidget.addTab(scatterTab, "Scatter")
+
+        # histogram tab
         histogramTab = QWidget()
         tabWidget.addTab(histogramTab, "Histogram")
-
-        # create the sub tabs
-        self.create_curve_tab()
 
         layout.addWidget(tabWidget)
         self.plotting1DTab.setLayout(layout)
@@ -494,7 +502,7 @@ class MainWindow(QMainWindow):
             self,
             "Fill Under",
             initial_fill_under_color,
-            param_ids=["Curve", "fill_under_color"],
+            param_ids=["Curve", ["fill_under_color"]],
             activated_on_init=False,
         )
         fill_under_color_checkbox = Activator(
@@ -633,8 +641,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(cap_thickness_slider)
         layout.addWidget(cap_thickness_checkbox)
 
-        # add layout to tab widget
-        self.curveTab.setLayout(layout)
+        return layout
 
     def create_plotting_2d_tab(self):
         layout = QVBoxLayout()
