@@ -244,10 +244,11 @@ class GLCanvas(FigureCanvas):
 
     def compute_initial_figure(self):
         curve = gl.Curve([0, 1, 2, 3, 4], [10, 1, 20, 3, 40])
-        curve.add_errorbars(y_error=1)
-        curve2 = gl.Curve([0, 1, 2, 3, 4], [11, 2, 21, 4, 41]) + 1
-        curve3 = gl.Curve([0, 1, 2, 3, 4], [12, 3, 22, 5, 42]) + 2
-        self.gl_fig.add_element(curve, curve2, curve3)
+        curve.area_between(0, 2, True)
+        # curve.add_errorbars(y_error=1)
+        # curve2 = gl.Curve([0, 1, 2, 3, 4], [11, 2, 21, 4, 41]) + 1
+        # curve3 = gl.Curve([0, 1, 2, 3, 4], [12, 3, 22, 5, 42]) + 2
+        self.gl_fig.add_element(curve)  # , curve2, curve3)
         self.gl_fig._prepare_figure(default_params=self.params)
 
 
@@ -483,6 +484,62 @@ class MainWindow(QMainWindow):
         )
         layout.addWidget(line_style_dropdown)
 
+        # create fill under color picker and "same as curve" checkbox
+        initial_fill_under_color = (
+            "#000000"
+            if self.params["Curve"]["fill_under_color"] == "same as curve"
+            else self.params["Curve"]["fill_under_color"]
+        )
+        fill_under_color = ColorPickerWidget(
+            self,
+            "Fill Under",
+            initial_fill_under_color,
+            param_ids=["Curve", "fill_under_color"],
+            activated_on_init=False,
+        )
+        fill_under_color_checkbox = Activator(
+            self,
+            "Same as curve",
+            fill_under_color,
+            ["Curve", "fill_under_color"],
+            "same as curve",
+        )
+        layout.addWidget(fill_under_color)
+        layout.addWidget(fill_under_color_checkbox)
+
+        # create line cap style dropdown
+        line_cap_style_dropdown = Dropdown(
+            self,
+            "Line Cap Style:",
+            ["Squared", "Rounded", "Squared extended"],
+            ["butt", "round", "projecting"],
+            ["rc_params", "lines.solid_capstyle"],
+            self.params["rc_params"]["lines.solid_capstyle"],
+        )
+        layout.addWidget(line_cap_style_dropdown)
+
+        # create dash cap style dropdown
+        dash_cap_style_dropdown = Dropdown(
+            self,
+            "Dash Cap Style:",
+            ["Squared", "Rounded", "Squared extended"],
+            ["butt", "round", "projecting"],
+            ["rc_params", "lines.dash_capstyle"],
+            self.params["rc_params"]["lines.dash_capstyle"],
+        )
+        layout.addWidget(dash_cap_style_dropdown)
+
+        # create dashed join style dropdown
+        dash_join_style_dropdown = Dropdown(
+            self,
+            "Dash Join Style:",
+            ["Squared", "Rounded", "Beveled"],
+            ["miter", "round", "bevel"],
+            ["rc_params", "lines.dash_joinstyle"],
+            self.params["rc_params"]["lines.dash_joinstyle"],
+        )
+        layout.addWidget(dash_join_style_dropdown)
+
         # section for curve errorbars
         errorbar_label = QLabel("Errorbars:")
         errorbar_label.setStyleSheet("font-weight: bold;")
@@ -576,7 +633,7 @@ class MainWindow(QMainWindow):
         layout.addWidget(cap_thickness_slider)
         layout.addWidget(cap_thickness_checkbox)
 
-        # Set the layout for the curve sub-tab
+        # add layout to tab widget
         self.curveTab.setLayout(layout)
 
     def create_plotting_2d_tab(self):
