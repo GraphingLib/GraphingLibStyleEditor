@@ -61,7 +61,6 @@ def create_curve_tab(window: QMainWindow):
         20,
         1,
         ["Curve", "line_width"],
-        window.params["Curve"]["line_width"],
     )
     layout.addWidget(line_width_slider)
 
@@ -72,7 +71,6 @@ def create_curve_tab(window: QMainWindow):
         ["Solid", "Dashed", "Dotted", "Dash-Dot"],
         ["-", "--", ":", "-."],
         ["Curve", "line_style"],
-        window.params["Curve"]["line_style"],
     )
     layout.addWidget(line_style_dropdown)
 
@@ -91,10 +89,8 @@ def create_curve_tab(window: QMainWindow):
     )
     fill_under_color_checkbox = Activator(
         window,
-        "Same as curve",
         fill_under_color,
         ["Curve", "fill_under_color"],
-        "same as curve",
     )
     layout.addWidget(fill_under_color_checkbox)
 
@@ -105,7 +101,6 @@ def create_curve_tab(window: QMainWindow):
         ["Squared", "Rounded", "Squared extended"],
         ["butt", "round", "projecting"],
         ["rc_params", "lines.solid_capstyle"],
-        window.params["rc_params"]["lines.solid_capstyle"],
     )
     layout.addWidget(line_cap_style_dropdown)
 
@@ -116,7 +111,6 @@ def create_curve_tab(window: QMainWindow):
         ["Squared", "Rounded", "Squared extended"],
         ["butt", "round", "projecting"],
         ["rc_params", "lines.dash_capstyle"],
-        window.params["rc_params"]["lines.dash_capstyle"],
     )
     layout.addWidget(dash_cap_style_dropdown)
 
@@ -127,7 +121,6 @@ def create_curve_tab(window: QMainWindow):
         ["Squared", "Rounded", "Beveled"],
         ["miter", "round", "bevel"],
         ["rc_params", "lines.dash_joinstyle"],
-        window.params["rc_params"]["lines.dash_joinstyle"],
     )
     layout.addWidget(dash_join_style_dropdown)
 
@@ -160,19 +153,12 @@ def create_curve_tab(window: QMainWindow):
     )
     errorbars_color_checkbox = Activator(
         window,
-        "Same as curve",
         errorbars_color,
         param_ids=["Curve", "errorbars_color"],
-        condition="same as curve",
     )
     layout.addWidget(errorbars_color_checkbox)
 
     # create errorbars line width slider and "same as curve" checkbox
-    initial_errorbars_line_width = (
-        window.params["Curve"]["line_width"]
-        if window.params["Curve"]["errorbars_line_width"] == "same as curve"
-        else window.params["Curve"]["errorbars_line_width"]
-    )
     errorbars_line_width_slider = Slider(
         window,
         "Line Width:",
@@ -180,25 +166,15 @@ def create_curve_tab(window: QMainWindow):
         20,
         1,
         ["Curve", "errorbars_line_width"],
-        initial_errorbars_line_width,
-        activated_on_init=window.params["Curve"]["errorbars_line_width"]
-        != "same as curve",
     )
     errorbars_line_width_checkbox = Activator(
         window,
-        "Same as curve",
         errorbars_line_width_slider,
         param_ids=["Curve", "errorbars_line_width"],
-        condition="same as curve",
     )
     layout.addWidget(errorbars_line_width_checkbox)
 
     # create errorbars cap thickness slider and "same as curve" checkbox
-    initial_cap_thickness = (
-        window.params["Curve"]["line_width"]
-        if window.params["Curve"]["cap_thickness"] == "same as curve"
-        else window.params["Curve"]["cap_thickness"]
-    )
     cap_thickness_slider = Slider(
         window,
         "Cap Thickness:",
@@ -206,15 +182,11 @@ def create_curve_tab(window: QMainWindow):
         20,
         1,
         ["Curve", "cap_thickness"],
-        initial_cap_thickness,
-        activated_on_init=window.params["Curve"]["cap_thickness"] != "same as curve",
     )
     cap_thickness_checkbox = Activator(
         window,
-        "Same as curve",
         cap_thickness_slider,
         ["Curve", "cap_thickness"],
-        "same as curve",
     )
     layout.addWidget(cap_thickness_checkbox)
 

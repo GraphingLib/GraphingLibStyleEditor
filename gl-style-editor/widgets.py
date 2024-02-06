@@ -116,10 +116,8 @@ class Activator(QWidget):
     def __init__(
         self,
         window: QMainWindow,
-        label,
         widget,
         param_ids=[],
-        condition="",
     ):
         super(Activator, self).__init__()
         self.the_window = window
@@ -127,12 +125,19 @@ class Activator(QWidget):
         self.param_section = param_ids[0]
         self.param_label = param_ids[1]
         self.layout = QHBoxLayout(self)
-        self.condition = condition
 
-        self.checkbox = QCheckBox(label)
-        self.checkbox.setChecked(
-            self.the_window.params[self.param_section][self.param_label] == condition
-        )
+        self.checkbox = QCheckBox("Same as " + self.param_section.lower())
+        if (
+            isinstance(
+                self.the_window.params[self.param_section][self.param_label], str
+            )
+            and "same as"
+            in self.the_window.params[self.param_section][self.param_label]
+        ):
+            is_checked = True
+        else:
+            is_checked = False
+        self.checkbox.setChecked(is_checked)
         self.checkbox.stateChanged.connect(self.onStateChanged)
         self.layout.addWidget(widget)
         self.layout.addWidget(self.checkbox)
@@ -140,7 +145,11 @@ class Activator(QWidget):
     def onStateChanged(self, state):
         self.widget.setEnabled(True if state != 2 else False)
         rc = {
-            self.param_label: (self.condition if state == 2 else self.widget.getValue())
+            self.param_label: (
+                "same as " + self.param_section.lower()
+                if state == 2
+                else self.widget.getValue()
+            )
         }
         self.the_window.params[self.param_section].update(rc)
         self.the_window.updateFigure()
@@ -155,8 +164,6 @@ class Slider(QWidget):
         maxi,
         tick_interval,
         param_ids=[],
-        initial_value=0,
-        activated_on_init=True,
     ):
         super(Slider, self).__init__()
         self.the_window = window
@@ -167,11 +174,21 @@ class Slider(QWidget):
         self.slider = QSlider(Qt.Horizontal)
         self.slider.setMinimum(mini)
         self.slider.setMaximum(maxi)
+        if isinstance(
+            self.the_window.params[self.param_section][self.param_label], str
+        ):
+            initial_value = 0
+        else:
+            initial_value = self.the_window.params[self.param_section][self.param_label]
         self.slider.setValue(initial_value * 2)
         self.slider.setTickPosition(QSlider.TicksBelow)
         self.slider.setTickInterval(tick_interval)
         self.slider.valueChanged.connect(self.onValueChanged)
-        self.setEnabled(activated_on_init)
+        self.setEnabled(
+            not isinstance(
+                self.the_window.params[self.param_section][self.param_label], str
+            )
+        )
 
         self.layout = QHBoxLayout(self)
         self.layout.addWidget(self.label)
@@ -194,8 +211,6 @@ class Dropdown(QWidget):
         items=[],
         param_values=[],
         param_ids=[],
-        initial_item=0,
-        activated_on_init=True,
     ):
         super(Dropdown, self).__init__()
         self.the_window = window
@@ -206,9 +221,31 @@ class Dropdown(QWidget):
         self.label = QLabel(label)
         self.dropdown = QComboBox()
         self.dropdown.addItems(items)
-        self.dropdown.setCurrentIndex(self.param_values.index(initial_item))
+        if (
+            isinstance(
+                self.the_window.params[self.param_section][self.param_label], str
+            )
+            and "same as"
+            in self.the_window.params[self.param_section][self.param_label]
+        ):
+            initial_index = 0
+        else:
+            initial_index = self.param_values.index(
+                self.the_window.params[self.param_section][self.param_label]
+            )
+        self.dropdown.setCurrentIndex(initial_index)
         self.dropdown.currentIndexChanged.connect(self.onCurrentIndexChanged)
-        self.setEnabled(activated_on_init)
+        if (
+            isinstance(
+                self.the_window.params[self.param_section][self.param_label], str
+            )
+            and "same as"
+            in self.the_window.params[self.param_section][self.param_label]
+        ):
+            is_enabled = True
+        else:
+            is_enabled = False
+        self.setEnabled(is_enabled)
 
         self.layout = QHBoxLayout(self)
         self.layout.addWidget(self.label)

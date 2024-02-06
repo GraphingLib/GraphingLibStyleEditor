@@ -39,7 +39,7 @@ class GLCanvas(FigureCanvas):
         curve.add_errorbars(y_error=1)
         # curve2 = gl.Curve([0, 1, 2, 3, 4], [11, 2, 21, 4, 41]) + 1
         # curve3 = gl.Curve([0, 1, 2, 3, 4], [12, 3, 22, 5, 42]) + 2
-        self.gl_fig.add_element(curve)  # , curve2, curve3)
+        self.gl_fig.add_elements(curve)  # , curve2, curve3)
         self.gl_fig._prepare_figure(default_params=self.params)
 
 

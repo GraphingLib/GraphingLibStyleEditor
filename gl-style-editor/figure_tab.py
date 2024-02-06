@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (
     QMainWindow,
 )
 
-from .widgets import ColorPickerWidget
+from .widgets import ColorPickerWidget, Slider, Dropdown
 
 
 def create_figure_tab(window: QMainWindow):
