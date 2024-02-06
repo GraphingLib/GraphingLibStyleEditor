@@ -3,14 +3,11 @@ import sys
 import graphinglib as gl
 from matplotlib.pyplot import close
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
-from PyQt5.QtCore import Qt, pyqtSignal
-from PyQt5.QtGui import QColor
+from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QApplication,
-    QColorDialog,
     QComboBox,
     QFrame,
-    QHBoxLayout,
     QLabel,
     QLineEdit,
     QMainWindow,
@@ -20,217 +17,10 @@ from PyQt5.QtWidgets import (
     QTabWidget,
     QVBoxLayout,
     QWidget,
-    QCheckBox,
     QScrollArea,
 )
 
-
-class ColorButton(QPushButton):
-    colorChanged = pyqtSignal(str)
-
-    def __init__(self, *args, color=None, **kwargs):
-        super(ColorButton, self).__init__(*args, **kwargs)
-        self._color = None
-        self._default = color
-        self.pressed.connect(self.onColorPicker)
-        self.setColor(self._default)
-        self.setFixedSize(25, 25)
-
-    def setColor(self, color):
-        if color != self._color:
-            self._color = color
-            self.colorChanged.emit(color)
-        if self._color:
-            self.setStyleSheet("background-color: %s;" % self._color)
-        else:
-            self.setStyleSheet("")
-
-    def color(self):
-        return self._color
-
-    def onColorPicker(self):
-        dlg = QColorDialog(self)
-        if self._color:
-            dlg.setCurrentColor(QColor(self._color))
-
-        # Calculate the position to move the dialog next to the button
-        button_pos = self.mapToGlobal(self.pos())
-        dlg.move(button_pos.x(), button_pos.y())
-
-        if dlg.exec_():
-            self.setColor(dlg.currentColor().name())
-
-    def mousePressEvent(self, e):
-        if e.button() == Qt.RightButton:  # type: ignore
-            self.setColor(self._default)
-        return super(ColorButton, self).mousePressEvent(e)
-
-
-class ColorPickerWidget(QWidget):
-    def __init__(
-        self,
-        window: QMainWindow,
-        label="Pick a colour:",
-        initial_color="#ff0000",
-        param_ids=[],
-        activated_on_init=True,
-    ):
-        super().__init__()
-        self.the_window = window
-        self.param_section = param_ids[0]
-        self.param_labels = param_ids[1]
-        self.layout = QHBoxLayout(self)  # type: ignore
-
-        self.label = QLabel(label)
-        self.colorButton = ColorButton(color=initial_color)
-        self.colorEdit = QLineEdit(initial_color)
-        self.colorEdit.setFixedWidth(60)  # Half the length
-        self.colorButton.colorChanged.connect(self.onColorChanged)
-        self.colorEdit.textChanged.connect(self.onColorEditTextChanged)
-
-        self.copyButton = QPushButton("Copy")
-        self.pasteButton = QPushButton("Paste")
-        self.copyButton.setFixedWidth(65)  # Shorter copy button
-        self.pasteButton.setFixedWidth(65)  # Shorter paste button
-        self.copyButton.clicked.connect(
-            lambda: QApplication.clipboard().setText(self.colorEdit.text())  # type: ignore
-        )
-        self.pasteButton.clicked.connect(
-            lambda: self.colorEdit.setText(QApplication.clipboard().text())  # type: ignore
-        )
-        self.setEnabled(activated_on_init)
-
-        self.layout.addWidget(self.label)
-        self.layout.addWidget(self.colorButton)
-        self.layout.addWidget(self.colorEdit)
-        self.layout.addWidget(self.copyButton)
-        self.layout.addWidget(self.pasteButton)
-
-    def onColorChanged(self, color):
-        self.colorEdit.setText(color)
-        rc = {label: color for label in self.param_labels}
-        self.the_window.params[self.param_section].update(rc)
-        self.the_window.updateFigure()
-
-    def onColorEditTextChanged(self, text):
-        if QColor(text).isValid():
-            self.colorButton.setColor(text)
-            param = {label: text for label in self.param_labels}
-            self.the_window.params[self.param_section].update(param)
-            self.the_window.updateFigure()
-
-    def getValue(self):
-        return self.colorButton._color
-
-
-class Activator(QWidget):
-    def __init__(
-        self,
-        window: QMainWindow,
-        label,
-        widget,
-        param_ids=[],
-        condition="",
-    ):
-        super(Activator, self).__init__()
-        self.the_window = window
-        self.widget = widget
-        self.param_section = param_ids[0]
-        self.param_label = param_ids[1]
-        self.layout = QHBoxLayout(self)
-        self.condition = condition
-
-        self.checkbox = QCheckBox(label)
-        self.checkbox.setChecked(
-            self.the_window.params[self.param_section][self.param_label] == condition
-        )
-        self.checkbox.stateChanged.connect(self.onStateChanged)
-        self.layout.addWidget(self.checkbox)
-
-    def onStateChanged(self, state):
-        self.widget.setEnabled(True if state != 2 else False)
-        rc = {
-            self.param_label: (self.condition if state == 2 else self.widget.getValue())
-        }
-        self.the_window.params[self.param_section].update(rc)
-        self.the_window.updateFigure()
-
-
-class Slider(QWidget):
-    def __init__(
-        self,
-        window: QMainWindow,
-        label,
-        mini,
-        maxi,
-        tick_interval,
-        param_ids=[],
-        initial_value=0,
-        activated_on_init=True,
-    ):
-        super(Slider, self).__init__()
-        self.the_window = window
-        self.param_section = param_ids[0]
-        self.param_label = param_ids[1]
-
-        self.label = QLabel(label)
-        self.slider = QSlider(Qt.Horizontal)
-        self.slider.setMinimum(mini)
-        self.slider.setMaximum(maxi)
-        self.slider.setValue(initial_value * 2)
-        self.slider.setTickPosition(QSlider.TicksBelow)
-        self.slider.setTickInterval(tick_interval)
-        self.slider.valueChanged.connect(self.onValueChanged)
-        self.setEnabled(activated_on_init)
-
-        self.layout = QHBoxLayout(self)
-        self.layout.addWidget(self.label)
-        self.layout.addWidget(self.slider)
-
-    def onValueChanged(self, value):
-        rc = {self.param_label: value / 2}
-        self.the_window.params[self.param_section].update(rc)
-        self.the_window.updateFigure()
-
-    def getValue(self):
-        return self.slider.value() / 2
-
-
-class Dropdown(QWidget):
-    def __init__(
-        self,
-        window: QMainWindow,
-        label,
-        items=[],
-        param_values=[],
-        param_ids=[],
-        initial_item=0,
-        activated_on_init=True,
-    ):
-        super(Dropdown, self).__init__()
-        self.the_window = window
-        self.param_section = param_ids[0]
-        self.param_label = param_ids[1]
-        self.param_values = param_values
-
-        self.label = QLabel(label)
-        self.dropdown = QComboBox()
-        self.dropdown.addItems(items)
-        self.dropdown.setCurrentIndex(self.param_values.index(initial_item))
-        self.dropdown.currentIndexChanged.connect(self.onCurrentIndexChanged)
-        self.setEnabled(activated_on_init)
-
-        self.layout = QHBoxLayout(self)
-        self.layout.addWidget(self.label)
-        self.layout.addWidget(self.dropdown)
-
-    def getValue(self):
-        return self.dropdown.currentIndex()
-
-    def onCurrentIndexChanged(self, index):
-        rc = {self.param_label: self.param_values[index]}
-        self.the_window.params[self.param_section].update(rc)
-        self.the_window.updateFigure()
+from .widgets import ColorPickerWidget, Slider, Activator, Dropdown
 
 
 class GLCanvas(FigureCanvas):
@@ -245,7 +35,7 @@ class GLCanvas(FigureCanvas):
 
     def compute_initial_figure(self):
         curve = gl.Curve([0, 1, 2, 3, 4], [10, 1, 20, 3, 40])
-        curve.area_between(0, 2, True)
+        curve.get_area_between(0, 2, True)
         curve.add_errorbars(y_error=1)
         # curve2 = gl.Curve([0, 1, 2, 3, 4], [11, 2, 21, 4, 41]) + 1
         # curve3 = gl.Curve([0, 1, 2, 3, 4], [12, 3, 22, 5, 42]) + 2
@@ -512,7 +302,6 @@ class MainWindow(QMainWindow):
             ["Curve", "fill_under_color"],
             "same as curve",
         )
-        layout.addWidget(fill_under_color)
         layout.addWidget(fill_under_color_checkbox)
 
         # create line cap style dropdown
@@ -559,8 +348,6 @@ class MainWindow(QMainWindow):
         layout.addWidget(errorbar_line)
 
         # create errorbar cap width slider
-        cap_width_label = QLabel("Cap Width:")
-        layout.addWidget(cap_width_label)
         cap_width_slider = Slider(self, "Cap Width:", 0, 20, 1, ["Curve", "cap_width"])
         layout.addWidget(cap_width_slider)
 
@@ -585,7 +372,6 @@ class MainWindow(QMainWindow):
             param_ids=["Curve", "errorbars_color"],
             condition="same as curve",
         )
-        layout.addWidget(errorbars_color)
         layout.addWidget(errorbars_color_checkbox)
 
         # create errorbars line width slider and "same as curve" checkbox
@@ -612,7 +398,6 @@ class MainWindow(QMainWindow):
             param_ids=["Curve", "errorbars_line_width"],
             condition="same as curve",
         )
-        layout.addWidget(errorbars_line_width_slider)
         layout.addWidget(errorbars_line_width_checkbox)
 
         # create errorbars cap thickness slider and "same as curve" checkbox
@@ -638,7 +423,6 @@ class MainWindow(QMainWindow):
             ["Curve", "cap_thickness"],
             "same as curve",
         )
-        layout.addWidget(cap_thickness_slider)
         layout.addWidget(cap_thickness_checkbox)
 
         return layout
@@ -731,39 +515,6 @@ class MainWindow(QMainWindow):
         self.params["rc_params"].update(rc)
         self.updateFigure()
 
-    def line_width_changed(self, value):
-        rc = {"line_width": value / 2}
-        self.params["Curve"].update(rc)
-        self.updateFigure()
-
-    def line_style_changed(self, value):
-        rc = {"line_style": ["-", "--", ":", "-."][value]}
-        self.params["Curve"].update(rc)
-        self.updateFigure()
-
-    def cap_width_changed(self, value):
-        rc = {"cap_width": value / 2}
-        self.params["Curve"].update(rc)
-        self.updateFigure()
-
-    def errorbars_color_checkbox_changed(self, value):
-        if value == 2:
-            rc = {"errorbars_color": "same as curve"}
-            self.params["Curve"].update(rc)
-            self.updateFigure()
-        else:
-            pass
-
-    def errorbars_line_width_changed(self, value):
-        rc = {"errorbars_line_width": value / 2}
-        self.params["Curve"].update(rc)
-        self.updateFigure()
-
-    def cap_thickness_changed(self, value):
-        rc = {"cap_thickness": value / 2}
-        self.params["Curve"].update(rc)
-        self.updateFigure()
-
     def updateFigure(self):
         # self.canvas.deleteLater()
         close()
@@ -777,7 +528,8 @@ class MainWindow(QMainWindow):
         gl.file_manager.FileSaver(name, self.params).save()
 
 
-app = QApplication(sys.argv)
-mainWin = MainWindow()
-mainWin.show()
-sys.exit(app.exec_())
+def run():
+    app = QApplication(sys.argv)
+    mainWin = MainWindow()
+    mainWin.show()
+    sys.exit(app.exec_())
