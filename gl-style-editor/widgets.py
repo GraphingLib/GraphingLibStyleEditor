@@ -118,6 +118,7 @@ class Activator(QWidget):
         window: QMainWindow,
         widget,
         param_ids=[],
+        is_none=False,
     ):
         super(Activator, self).__init__()
         self.the_window = window
@@ -125,8 +126,10 @@ class Activator(QWidget):
         self.param_section = param_ids[0]
         self.param_label = param_ids[1]
         self.layout = QHBoxLayout(self)
+        self.is_none = is_none
 
-        self.checkbox = QCheckBox("Same as " + self.param_section.lower())
+        label = "None" if self.is_none else "Same as " + self.param_section.lower()
+        self.checkbox = QCheckBox(label)
         if (
             isinstance(
                 self.the_window.params[self.param_section][self.param_label], str
@@ -134,6 +137,8 @@ class Activator(QWidget):
             and "same as"
             in self.the_window.params[self.param_section][self.param_label]
         ):
+            is_checked = True
+        elif self.the_window.params[self.param_section][self.param_label] == "none":
             is_checked = True
         else:
             is_checked = False
@@ -144,13 +149,14 @@ class Activator(QWidget):
 
     def onStateChanged(self, state):
         self.widget.setEnabled(True if state != 2 else False)
-        rc = {
-            self.param_label: (
-                "same as " + self.param_section.lower()
-                if state == 2
-                else self.widget.getValue()
-            )
-        }
+        if state == 2:
+            if self.is_none:
+                new_param = "none"
+            else:
+                new_param = "same as " + self.param_section.lower()
+        else:
+            new_param = self.widget.getValue()
+        rc = {self.param_label: new_param}
         self.the_window.params[self.param_section].update(rc)
         self.the_window.updateFigure()
 

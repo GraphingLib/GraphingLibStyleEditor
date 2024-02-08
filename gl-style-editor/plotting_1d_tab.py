@@ -27,8 +27,14 @@ def create_plotting_1d_tab(window: QMainWindow):
     tabWidget.addTab(curveTabScrollArea, "Curve")
 
     # scatter tab
+    scatterTabLayout = create_scatter_tab(window)
     scatterTab = QWidget()
-    tabWidget.addTab(scatterTab, "Scatter")
+    scatterTab.setLayout(scatterTabLayout)
+    scatterTabScrollArea = QScrollArea()
+    scatterTabScrollArea.setWidgetResizable(True)
+    scatterTabScrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+    scatterTabScrollArea.setWidget(scatterTab)
+    tabWidget.addTab(scatterTabScrollArea, "Scatter")
 
     # histogram tab
     histogramTab = QWidget()
@@ -189,5 +195,97 @@ def create_curve_tab(window: QMainWindow):
         ["Curve", "cap_thickness"],
     )
     layout.addWidget(cap_thickness_checkbox)
+
+    return layout
+
+
+def create_scatter_tab(window: QMainWindow):
+    layout = QVBoxLayout()
+    layout.setAlignment(Qt.AlignTop)
+
+    scatter_label = QLabel("Scatter:")
+    scatter_label.setStyleSheet("font-weight: bold;")
+    layout.addWidget(scatter_label)
+
+    scatter_line = QFrame()
+    scatter_line.setFrameShape(QFrame.HLine)
+    scatter_line.setFrameShadow(QFrame.Sunken)
+    layout.addWidget(scatter_line)
+
+    marker_edge_color = ColorPickerWidget(
+        window,
+        "Marker Edge Color:",
+        window.params["Scatter"]["edge_color"],
+        ["Scatter", ["edge_color"]],
+        activated_on_init=(
+            False if window.params["Scatter"]["edge_color"] == "none" else True
+        ),
+    )
+    marker_edge_color_checkbox = Activator(
+        window, marker_edge_color, ["Scatter", "edge_color"], True
+    )
+    layout.addWidget(marker_edge_color_checkbox)
+
+    marker_size_slider = Slider(
+        window, "Marker Size:", 0, 200, 10, ["Scatter", "marker_size"]
+    )
+    layout.addWidget(marker_size_slider)
+
+    marker_style_dropdown = Dropdown(
+        window,
+        "Marker Style:",
+        [
+            "Circle",
+            "Triangle Up",
+            "Triangle Down",
+            "Triangle Left",
+            "Triangle Right",
+            "Square",
+            "X",
+            "Thin Diamond",
+        ],
+        ["o", "^", "v", "<", ">", "s", "x", "d"],
+        ["Scatter", "marker_style"],
+    )
+    layout.addWidget(marker_style_dropdown)
+
+    errorbar_label = QLabel("Errorbars:")
+    errorbar_label.setStyleSheet("font-weight: bold;")
+    layout.addWidget(errorbar_label)
+
+    errorbar_line = QFrame()
+    errorbar_line.setFrameShape(QFrame.HLine)
+    errorbar_line.setFrameShadow(QFrame.Sunken)
+    layout.addWidget(errorbar_line)
+
+    errorbars_intitial_color = (
+        "#000000"
+        if "same as" in window.params["Scatter"]["errorbars_color"]
+        else window.params["Scatter"]["errorbars_color"]
+    )
+    errorbars_color = ColorPickerWidget(
+        window,
+        "Color:",
+        errorbars_intitial_color,
+        ["Scatter", ["errorbars_color"]],
+        "same as" not in window.params["Scatter"]["errorbars_color"],
+    )
+    errorbars_color_checkbox = Activator(
+        window, errorbars_color, ["Scatter", "errorbars_color"]
+    )
+    layout.addWidget(errorbars_color_checkbox)
+
+    cap_width_slider = Slider(window, "Cap Width:", 0, 20, 1, ["Scatter", "cap_width"])
+    layout.addWidget(cap_width_slider)
+
+    errorbars_line_width = Slider(
+        window, "Line Width:", 0, 20, 1, ["Scatter", "errorbars_line_width"]
+    )
+    layout.addWidget(errorbars_line_width)
+
+    errorbars_cap_thickness = Slider(
+        window, "Cap Thickness:", 0, 20, 1, ["Scatter", "cap_thickness"]
+    )
+    layout.addWidget(errorbars_cap_thickness)
 
     return layout
