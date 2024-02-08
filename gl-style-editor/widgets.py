@@ -11,6 +11,7 @@ from PyQt5.QtWidgets import (
     QLineEdit,
     QSlider,
     QComboBox,
+    QSpinBox,
 )
 
 
@@ -285,3 +286,30 @@ class CheckBox(QWidget):
         rc = {self.param_label: True if state == 2 else False}
         self.the_window.params[self.param_section].update(rc)
         self.the_window.updateFigure()
+
+
+class IntegerBox(QWidget):
+    def __init__(self, window: QMainWindow, label, param_ids=[]):
+        super(IntegerBox, self).__init__()
+        self.the_window = window
+        self.param_section = param_ids[0]
+        self.param_label = param_ids[1]
+
+        self.label = QLabel(label)
+        initial_value = self.the_window.params[self.param_section][self.param_label]
+        initial_value = 0 if isinstance(initial_value, str) else int(initial_value)
+        self.spinbox = QSpinBox()
+        self.spinbox.setValue(initial_value)
+        self.spinbox.valueChanged.connect(self.onValueChanged)
+
+        self.layout = QHBoxLayout(self)
+        self.layout.addWidget(self.label)
+        self.layout.addWidget(self.spinbox)
+
+    def onValueChanged(self, value):
+        rc = {self.param_label: value}
+        self.the_window.params[self.param_section].update(rc)
+        self.the_window.updateFigure()
+
+    def getValue(self):
+        return self.spinbox.value()

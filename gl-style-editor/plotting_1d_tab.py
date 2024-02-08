@@ -9,7 +9,7 @@ from PyQt5.QtWidgets import (
     QMainWindow,
 )
 
-from .widgets import ColorPickerWidget, Slider, Activator, Dropdown
+from .widgets import ColorPickerWidget, Slider, Activator, Dropdown, IntegerBox
 
 
 def create_plotting_1d_tab(window: QMainWindow):
@@ -37,7 +37,13 @@ def create_plotting_1d_tab(window: QMainWindow):
     tabWidget.addTab(scatterTabScrollArea, "Scatter")
 
     # histogram tab
+    histogramTabLayout = create_histogram_tab(window)
     histogramTab = QWidget()
+    histogramTab.setLayout(histogramTabLayout)
+    histogramTabScrollArea = QScrollArea()
+    histogramTabScrollArea.setWidgetResizable(True)
+    histogramTabScrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+    histogramTabScrollArea.setWidget(histogramTab)
     tabWidget.addTab(histogramTab, "Histogram")
 
     layout.addWidget(tabWidget)
@@ -287,5 +293,17 @@ def create_scatter_tab(window: QMainWindow):
         window, "Cap Thickness:", 0, 20, 1, ["Scatter", "cap_thickness"]
     )
     layout.addWidget(errorbars_cap_thickness)
+
+    return layout
+
+
+def create_histogram_tab(window: QMainWindow):
+    layout = QVBoxLayout()
+    layout.setAlignment(Qt.AlignTop)
+
+    number_of_bins = IntegerBox(
+        window, "Number of bins", ["Histogram", "number_of_bins"]
+    )
+    layout.addWidget(number_of_bins)
 
     return layout
