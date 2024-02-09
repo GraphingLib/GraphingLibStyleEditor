@@ -171,11 +171,13 @@ class Slider(QWidget):
         maxi,
         tick_interval,
         param_ids=[],
+        conversion_factor=2,
     ):
         super(Slider, self).__init__()
         self.the_window = window
         self.param_section = param_ids[0]
         self.param_label = param_ids[1]
+        self.factor = conversion_factor
 
         self.label = QLabel(label)
         self.slider = QSlider(Qt.Horizontal)
@@ -187,7 +189,7 @@ class Slider(QWidget):
             initial_value = 0
         else:
             initial_value = self.the_window.params[self.param_section][self.param_label]
-        self.slider.setValue(int(initial_value * 2))
+        self.slider.setValue(int(initial_value * self.factor))
         self.slider.setTickPosition(QSlider.TicksBelow)
         self.slider.setTickInterval(tick_interval)
         self.slider.valueChanged.connect(self.onValueChanged)
@@ -202,12 +204,12 @@ class Slider(QWidget):
         self.layout.addWidget(self.slider)
 
     def onValueChanged(self, value):
-        rc = {self.param_label: value / 2}
+        rc = {self.param_label: value / self.factor}
         self.the_window.params[self.param_section].update(rc)
         self.the_window.updateFigure()
 
     def getValue(self):
-        return self.slider.value() / 2
+        return self.slider.value() / self.factor
 
 
 class Dropdown(QWidget):

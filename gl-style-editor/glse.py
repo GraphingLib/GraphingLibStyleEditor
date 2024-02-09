@@ -36,13 +36,11 @@ class GLCanvas(FigureCanvas):
         super(GLCanvas, self).__init__(self.fig)
 
     def compute_initial_figure(self):
-        # curve = gl.Scatter([0, 1, 2, 3, 4], [10, 1, 20, 3, 40])
+        curve = gl.Curve([0, 1, 2, 3, 4], [10, 1, 20, 3, 40])
         # curve.add_errorbars(y_error=2)
-        # curve2 = gl.Curve([0, 1, 2, 3, 4], [11, 2, 21, 4, 41]) + 1
-        # curve3 = gl.Curve([0, 1, 2, 3, 4], [12, 3, 22, 5, 42]) + 2
-        dist = np.random.normal(0, 1, 100)
-        hist = gl.Histogram(dist, 30)
-        self.gl_fig.add_elements(hist)
+        curve2 = gl.Curve([0, 1, 2, 3, 4], [11, 2, 21, 4, 41]) + 1
+        curve3 = gl.Curve([0, 1, 2, 3, 4], [12, 3, 22, 5, 42]) + 2
+        self.gl_fig.add_elements(curve, curve2, curve3)
         self.gl_fig._prepare_figure(default_params=self.params)
 
 

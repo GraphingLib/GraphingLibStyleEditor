@@ -9,7 +9,14 @@ from PyQt5.QtWidgets import (
     QMainWindow,
 )
 
-from .widgets import ColorPickerWidget, Slider, Activator, Dropdown, IntegerBox
+from .widgets import (
+    ColorPickerWidget,
+    Slider,
+    Activator,
+    Dropdown,
+    IntegerBox,
+    CheckBox,
+)
 
 
 def create_plotting_1d_tab(window: QMainWindow):
@@ -44,7 +51,7 @@ def create_plotting_1d_tab(window: QMainWindow):
     histogramTabScrollArea.setWidgetResizable(True)
     histogramTabScrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
     histogramTabScrollArea.setWidget(histogramTab)
-    tabWidget.addTab(histogramTab, "Histogram")
+    tabWidget.addTab(histogramTabScrollArea, "Histogram")
 
     layout.addWidget(tabWidget)
     window.plotting1DTab.setLayout(layout)
@@ -301,9 +308,94 @@ def create_histogram_tab(window: QMainWindow):
     layout = QVBoxLayout()
     layout.setAlignment(Qt.AlignTop)
 
-    number_of_bins = IntegerBox(
-        window, "Number of bins", ["Histogram", "number_of_bins"]
+    histogram_label = QLabel("Histogram:")
+    histogram_label.setStyleSheet("font-weight: bold;")
+    layout.addWidget(histogram_label)
+
+    histogram_line = QFrame()
+    histogram_line.setFrameShape(QFrame.HLine)
+    histogram_line.setFrameShadow(QFrame.Sunken)
+    layout.addWidget(histogram_line)
+
+    # number_of_bins = IntegerBox(
+    #     window, "Number of bins", ["Histogram", "number_of_bins"]
+    # )
+    # layout.addWidget(number_of_bins)
+
+    hist_type = Dropdown(
+        window,
+        "Histogram Type:",
+        ["Step-Filled"],
+        ["stepfilled"],
+        ["Histogram", "hist_type"],
     )
-    layout.addWidget(number_of_bins)
+    layout.addWidget(hist_type)
+
+    normalize = CheckBox(window, "Normalized", ["Histogram", "normalize"])
+    layout.addWidget(normalize)
+
+    face_color = ColorPickerWidget(
+        window,
+        "Face Color:",
+        window.params["Histogram"]["face_color"],
+        ["Histogram", ["face_color"]],
+    )
+    layout.addWidget(face_color)
+
+    alpha = Slider(window, "Opacity:", 0, 100, 5, ["Histogram", "alpha"], 100)
+    layout.addWidget(alpha)
+
+    edge_color = ColorPickerWidget(
+        window,
+        "Edge Color:",
+        window.params["Histogram"]["edge_color"],
+        ["Histogram", ["edge_color"]],
+    )
+    layout.addWidget(edge_color)
+
+    line_width = Slider(window, "Line Width:", 0, 20, 1, ["Histogram", "line_width"])
+    layout.addWidget(line_width)
+
+    pdf_label = QLabel("Probability Density Function (PDF):")
+    pdf_label.setStyleSheet("font-weight: bold;")
+    layout.addWidget(pdf_label)
+
+    pdf_line = QFrame()
+    pdf_line.setFrameShape(QFrame.HLine)
+    pdf_line.setFrameShadow(QFrame.Sunken)
+    layout.addWidget(pdf_line)
+
+    show_params = CheckBox(window, "Show Parameters", ["Histogram", "show_params"])
+    layout.addWidget(show_params)
+
+    pdf_show_mean = CheckBox(window, "Show Mean", ["Histogram", "pdf_show_mean"])
+    layout.addWidget(pdf_show_mean)
+
+    pdf_show_std = CheckBox(window, "Show STD", ["Histogram", "pdf_show_std"])
+    layout.addWidget(pdf_show_std)
+
+    pdf_curve_color = ColorPickerWidget(
+        window,
+        "Curve:",
+        window.params["Histogram"]["pdf_curve_color"],
+        ["Histogram", ["pdf_curve_color"]],
+    )
+    layout.addWidget(pdf_curve_color)
+
+    pdf_mean_color = ColorPickerWidget(
+        window,
+        "Mean Line:",
+        window.params["Histogram"]["pdf_mean_color"],
+        ["Histogram", ["pdf_mean_color"]],
+    )
+    layout.addWidget(pdf_mean_color)
+
+    pdf_std_color = ColorPickerWidget(
+        window,
+        "STD Lines:",
+        window.params["Histogram"]["pdf_std_color"],
+        ["Histogram", ["pdf_std_color"]],
+    )
+    layout.addWidget(pdf_std_color)
 
     return layout
