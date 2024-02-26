@@ -1,17 +1,19 @@
-from PyQt5.QtCore import Qt, pyqtSignal
+from PyQt5.QtCore import QSortFilterProxyModel, QStringListModel, Qt, pyqtSignal
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import (
-    QColorDialog,
-    QHBoxLayout,
     QCheckBox,
-    QPushButton,
-    QMainWindow,
-    QWidget,
+    QColorDialog,
+    QComboBox,
+    QHBoxLayout,
     QLabel,
     QLineEdit,
+    QListView,
+    QMainWindow,
+    QPushButton,
     QSlider,
-    QComboBox,
     QSpinBox,
+    QVBoxLayout,
+    QWidget,
 )
 
 
@@ -204,7 +206,11 @@ class Slider(QWidget):
         self.layout.addWidget(self.slider)
 
     def onValueChanged(self, value):
-        rc = {self.param_label: value / self.factor}
+        new_value = value / self.factor
+        # turn into int if it's a whole number
+        if new_value == int(new_value):
+            new_value = int(new_value)
+        rc = {self.param_label: new_value}
         self.the_window.params[self.param_section].update(rc)
         self.the_window.updateFigure()
 
@@ -315,3 +321,49 @@ class IntegerBox(QWidget):
 
     def getValue(self):
         return self.spinbox.value()
+
+
+class ListOptions(QWidget):
+    def __init__(self, window: QMainWindow, label, options=[], param_ids=[]):
+        super(ListOptions, self).__init__()
+        self.the_window = window
+        self.param_section = param_ids[0]
+        self.param_label = param_ids[1]
+
+        self.labelWidget = QLabel(label)
+        self.filterLineEdit = QLineEdit()
+        self.filterLineEdit.setPlaceholderText("Type to filter options...")
+        self.listView = QListView()
+
+        self.model = QStringListModel(options)
+
+        self.proxyModel = QSortFilterProxyModel(self)
+        self.proxyModel.setFilterCaseSensitivity(Qt.CaseInsensitive)
+        self.proxyModel.setSourceModel(self.model)
+        self.listView.setModel(self.proxyModel)
+
+        # Connect the QLineEdit's textChanged signal to update the filter
+        self.filterLineEdit.textChanged.connect(self.proxyModel.setFilterFixedString)
+
+        self.layout = QVBoxLayout(self)
+        self.layout.addWidget(self.labelWidget)
+        self.layout.addWidget(self.filterLineEdit)
+        self.layout.addWidget(self.listView)
+
+        # Connect the listView selection change to handle selection
+        self.listView.selectionModel().selectionChanged.connect(self.onSelectionChanged)
+
+    def onSelectionChanged(self, selected, deselected):
+        # Assuming the parameter needs the text of the selected option
+        selectedIndexes = self.listView.selectedIndexes()
+        if selectedIndexes:
+            selectedText = self.model.data(selectedIndexes[0], Qt.DisplayRole)
+            rc = {self.param_label: selectedText}
+            self.the_window.params[self.param_section].update(rc)
+            self.the_window.updateFigure()
+
+    def getCurrentSelection(self):
+        selectedIndexes = self.listView.selectedIndexes()
+        if selectedIndexes:
+            return self.model.data(selectedIndexes[0], Qt.DisplayRole)
+        return None
