@@ -1,22 +1,15 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
-    QVBoxLayout,
-    QTabWidget,
-    QWidget,
-    QScrollArea,
-    QLabel,
     QFrame,
+    QLabel,
     QMainWindow,
+    QScrollArea,
+    QTabWidget,
+    QVBoxLayout,
+    QWidget,
 )
 
-from .widgets import (
-    ColorPickerWidget,
-    Slider,
-    Activator,
-    Dropdown,
-    IntegerBox,
-    CheckBox,
-)
+from .widgets import Activator, CheckBox, ColorPickerWidget, Dropdown, Slider
 
 
 def create_plotting_1d_tab(window: QMainWindow):
@@ -109,7 +102,9 @@ def create_curve_tab(window: QMainWindow):
     fill_under_color_checkbox = Activator(
         window,
         fill_under_color,
-        ["Curve", "fill_under_color"],
+        param_ids=["Curve", "fill_under_color"],
+        check_label="Same as curve",
+        param_if_checked="same as curve",
     )
     layout.addWidget(fill_under_color_checkbox)
 
@@ -174,6 +169,8 @@ def create_curve_tab(window: QMainWindow):
         window,
         errorbars_color,
         param_ids=["Curve", "errorbars_color"],
+        check_label="Same as curve",
+        param_if_checked="same as curve",
     )
     layout.addWidget(errorbars_color_checkbox)
 
@@ -190,6 +187,8 @@ def create_curve_tab(window: QMainWindow):
         window,
         errorbars_line_width_slider,
         param_ids=["Curve", "errorbars_line_width"],
+        check_label="Same as curve",
+        param_if_checked="same as curve",
     )
     layout.addWidget(errorbars_line_width_checkbox)
 
@@ -206,6 +205,8 @@ def create_curve_tab(window: QMainWindow):
         window,
         cap_thickness_slider,
         ["Curve", "cap_thickness"],
+        check_label="Same as curve",
+        param_if_checked="same as curve",
     )
     layout.addWidget(cap_thickness_checkbox)
 
@@ -235,7 +236,11 @@ def create_scatter_tab(window: QMainWindow):
         ),
     )
     marker_edge_color_checkbox = Activator(
-        window, marker_edge_color, ["Scatter", "edge_color"], True
+        window,
+        widget=marker_edge_color,
+        param_ids=["Scatter", "edge_color"],
+        check_label="None",
+        param_if_checked="none",
     )
     layout.addWidget(marker_edge_color_checkbox)
 
@@ -284,7 +289,11 @@ def create_scatter_tab(window: QMainWindow):
         "same as" not in window.params["Scatter"]["errorbars_color"],
     )
     errorbars_color_checkbox = Activator(
-        window, errorbars_color, ["Scatter", "errorbars_color"]
+        window,
+        widget=errorbars_color,
+        param_ids=["Scatter", "errorbars_color"],
+        check_label="Same as scatter",
+        param_if_checked="same as scatter",
     )
     layout.addWidget(errorbars_color_checkbox)
 

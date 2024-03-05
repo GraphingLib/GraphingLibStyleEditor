@@ -42,11 +42,15 @@ class GLCanvas(FigureCanvas):
         # curve3 = gl.Curve([0, 1, 2, 3, 4], [12, 3, 22, 5, 42]) + 2
         # self.gl_fig.add_elements(curve, curve2, curve3)
         # self.gl_fig._prepare_figure(default_params=self.params)
-        contour = gl.Contour.from_function(
-            lambda x, y: np.sin(x) + np.cos(y), (-10, 10), (-10, 10)
-        )
-        self.gl_fig.add_elements(contour)
+        # contour = gl.Contour.from_function(
+        #     lambda x, y: np.sin(x) + np.cos(y), (-10, 10), (-10, 10)
+        # )
+        # self.gl_fig.add_elements(contour)
+        circle = gl.Circle(0, 0, 5)
+        rect = gl.Rectangle(0, 0, 5, 5)
+        self.gl_fig.add_elements(circle, rect)
         self.gl_fig._prepare_figure(default_params=self.params)
+        color = self.params["Circle"]["color"]
 
 
 class MainWindow(QMainWindow):
