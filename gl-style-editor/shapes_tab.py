@@ -140,4 +140,21 @@ def create_rectangle_tab(window):
     )
     layout.addWidget(line_style)
 
+    color = ColorPickerWidget(
+        window,
+        "Color",
+        param_ids=["Rectangle", ["color"]],
+        activated_on_init=(
+            False if window.params["Rectangle"]["color"] == "" else True
+        ),
+    )
+    color_picker_widget = Activator(
+        window,
+        widget=color,
+        param_ids=["Rectangle", "color"],
+        check_label="Use color cycle",
+        param_if_checked=None,
+    )
+    layout.addWidget(color_picker_widget)
+
     return layout
