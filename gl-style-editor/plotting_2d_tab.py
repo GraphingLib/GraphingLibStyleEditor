@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
-from .widgets import CheckBox, ListOptions, Slider
+from .widgets import CheckBox, Dropdown, ListOptions, Slider
 
 
 def create_plotting_2d_tab(window: QMainWindow):
@@ -27,9 +27,17 @@ def create_plotting_2d_tab(window: QMainWindow):
     contourTabScrollArea.setWidget(contourTab)
     tabWidget.addTab(contourTabScrollArea, "Contour")
 
-    # Example stubs for each sub-tab
+    # heatmap tab
+    heatmapTabLayout = create_heatmap_tab(window)
     heatmapTab = QWidget()
-    tabWidget.addTab(heatmapTab, "Heatmap")
+    heatmapTab.setLayout(heatmapTabLayout)
+    heatmapTabScrollArea = QScrollArea()
+    heatmapTabScrollArea.setWidgetResizable(True)
+    heatmapTabScrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+    heatmapTabScrollArea.setWidget(heatmapTab)
+    tabWidget.addTab(heatmapTabScrollArea, "Heatmap")
+
+    # Example stubs for each sub-tab
     streamTab = QWidget()
     tabWidget.addTab(streamTab, "Stream")
     vectorFieldTab = QWidget()
@@ -92,5 +100,42 @@ def create_contour_tab(window: QMainWindow):
         ["Contour", "filled"],
     )
     layout.addWidget(filled)
+
+    return layout
+
+
+def create_heatmap_tab(window: QMainWindow):
+    # Create a layout for the heatmap tab
+    layout = QVBoxLayout()
+    layout.setAlignment(Qt.AlignTop)
+
+    # create colormap dropdown
+    colormap = ListOptions(
+        window,
+        "Colormap",
+        list(colormaps),
+        ["Heatmap", "color_map"],
+    )
+    layout.addWidget(colormap)
+
+    # create origin position dropdown
+    origin = Dropdown(
+        window,
+        label="Origin position",
+        items=["Upper left", "Lower left"],
+        param_values=["upper", "lower"],
+        param_ids=["Heatmap", "origin_position"],
+    )
+    layout.addWidget(origin)
+
+    # create aspect ratio dropdown
+    aspect_ratio = Dropdown(
+        window,
+        "Aspect ratio",
+        ["Fit data to axes", "Fit axes to data (equal)"],
+        ["auto", "equal"],
+        ["Heatmap", "aspect_ratio"],
+    )
+    layout.addWidget(aspect_ratio)
 
     return layout
