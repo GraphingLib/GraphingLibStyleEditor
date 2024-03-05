@@ -3,6 +3,7 @@ from typing import Optional
 from PyQt5.QtCore import QSortFilterProxyModel, QStringListModel, Qt, pyqtSignal
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import (
+    QApplication,
     QCheckBox,
     QColorDialog,
     QComboBox,
