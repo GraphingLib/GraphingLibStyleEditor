@@ -62,7 +62,8 @@ class GLCanvas(FigureCanvas):
         u, v = (np.cos(x_grid * 0.2), np.sin(y_grid * 0.3))
 
         stream = gl.Stream(x_grid, y_grid, u, v)
-        self.gl_fig.add_elements(stream)
+        point = gl.Point(5, 5)
+        self.gl_fig.add_elements(stream, point)
         self.gl_fig._prepare_figure(default_params=self.params)
 
 
