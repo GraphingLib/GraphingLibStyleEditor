@@ -10,7 +10,14 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
-from .widgets import CheckBox, Dropdown, ListOptions, Slider
+from .widgets import (
+    Activator,
+    CheckBox,
+    ColorPickerWidget,
+    Dropdown,
+    ListOptions,
+    Slider,
+)
 
 
 def create_plotting_2d_tab(window: QMainWindow):
@@ -37,9 +44,17 @@ def create_plotting_2d_tab(window: QMainWindow):
     heatmapTabScrollArea.setWidget(heatmapTab)
     tabWidget.addTab(heatmapTabScrollArea, "Heatmap")
 
-    # Example stubs for each sub-tab
+    # stream tab
+    streamTabLayout = create_stream_tab(window)
     streamTab = QWidget()
-    tabWidget.addTab(streamTab, "Stream")
+    streamTab.setLayout(streamTabLayout)
+    streamTabScrollArea = QScrollArea()
+    streamTabScrollArea.setWidgetResizable(True)
+    streamTabScrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+    streamTabScrollArea.setWidget(streamTab)
+    tabWidget.addTab(streamTabScrollArea, "Stream")
+
+    # Example stubs for each sub-tab
     vectorFieldTab = QWidget()
     tabWidget.addTab(vectorFieldTab, "VectorField")
 
@@ -137,5 +152,68 @@ def create_heatmap_tab(window: QMainWindow):
         ["Heatmap", "aspect_ratio"],
     )
     layout.addWidget(aspect_ratio)
+
+    return layout
+
+
+def create_stream_tab(window: QMainWindow):
+
+    layout = QVBoxLayout()
+    layout.setAlignment(Qt.AlignTop)
+
+    # create line_width slider
+    line_width = Slider(
+        window,
+        "Line Width",
+        0,
+        10,
+        1,
+        ["Stream", "line_width"],
+        conversion_factor=1,
+    )
+    layout.addWidget(line_width)
+
+    # create arrow_size slider
+    arrow_size = Slider(
+        window,
+        "Arrow Size",
+        0,
+        10,
+        1,
+        ["Stream", "arrow_size"],
+        conversion_factor=1,
+    )
+    layout.addWidget(arrow_size)
+
+    # create colormap dropdown
+    colormap = ListOptions(
+        window,
+        "Colormap",
+        list(colormaps),
+        ["Stream", "color_map"],
+    )
+    layout.addWidget(colormap)
+
+    # create color button with activator
+    initial_color = (
+        "#000000"
+        if window.params["Stream"]["color"] is None
+        else window.params["Stream"]["color"]
+    )
+    color = ColorPickerWidget(
+        window,
+        "Color",
+        initial_color=initial_color,
+        param_ids=["Stream", ["color"]],
+        activated_on_init=window.params["Stream"]["color"] is not None,
+    )
+    activator = Activator(
+        window,
+        color,
+        param_ids=["Stream", "color"],
+        check_label="Use color cycle",
+        param_if_checked=None,
+    )
+    layout.addWidget(activator)
 
     return layout

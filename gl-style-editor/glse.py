@@ -51,12 +51,18 @@ class GLCanvas(FigureCanvas):
         # self.gl_fig.add_elements(circle, rect)
         # self.gl_fig._prepare_figure(default_params=self.params)
         # color = self.params["Circle"]["color"]
-        heatmap = gl.Heatmap.from_function(
-            lambda x, y: np.sin(x) + np.cos(y - 1),
-            (0, 10),
-            (0, 10),
-        )
-        self.gl_fig.add_elements(heatmap)
+        # heatmap = gl.Heatmap.from_function(
+        #     lambda x, y: np.sin(x) + np.cos(y - 1),
+        #     (0, 10),
+        #     (0, 10),
+        # )
+        # self.gl_fig.add_elements(heatmap)
+        # self.gl_fig._prepare_figure(default_params=self.params)
+        x_grid, y_grid = np.meshgrid(np.linspace(0, 11, 30), np.linspace(0, 11, 30))
+        u, v = (np.cos(x_grid * 0.2), np.sin(y_grid * 0.3))
+
+        stream = gl.Stream(x_grid, y_grid, u, v)
+        self.gl_fig.add_elements(stream)
         self.gl_fig._prepare_figure(default_params=self.params)
 
 
