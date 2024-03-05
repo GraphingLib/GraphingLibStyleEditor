@@ -46,11 +46,18 @@ class GLCanvas(FigureCanvas):
         #     lambda x, y: np.sin(x) + np.cos(y), (-10, 10), (-10, 10)
         # )
         # self.gl_fig.add_elements(contour)
-        circle = gl.Circle(0, 0, 5)
-        rect = gl.Rectangle(0, 0, 5, 5)
-        self.gl_fig.add_elements(circle, rect)
+        # circle = gl.Circle(0, 0, 5)
+        # rect = gl.Rectangle(0, 0, 5, 5)
+        # self.gl_fig.add_elements(circle, rect)
+        # self.gl_fig._prepare_figure(default_params=self.params)
+        # color = self.params["Circle"]["color"]
+        heatmap = gl.Heatmap.from_function(
+            lambda x, y: np.sin(x) + np.cos(y - 1),
+            (0, 10),
+            (0, 10),
+        )
+        self.gl_fig.add_elements(heatmap)
         self.gl_fig._prepare_figure(default_params=self.params)
-        color = self.params["Circle"]["color"]
 
 
 class MainWindow(QMainWindow):
