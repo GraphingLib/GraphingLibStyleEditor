@@ -1,3 +1,5 @@
+from typing import Optional
+
 from PyQt5.QtCore import QSortFilterProxyModel, QStringListModel, Qt, pyqtSignal
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import (
@@ -121,7 +123,8 @@ class Activator(QWidget):
         window: QMainWindow,
         widget,
         param_ids=[],
-        is_none=False,
+        check_label="",
+        param_if_checked: Optional[str] = "",
     ):
         super(Activator, self).__init__()
         self.the_window = window
@@ -129,34 +132,28 @@ class Activator(QWidget):
         self.param_section = param_ids[0]
         self.param_label = param_ids[1]
         self.layout = QHBoxLayout(self)
-        self.is_none = is_none
+        self.check_label = check_label
+        self.param_if_checked = param_if_checked
 
-        label = "None" if self.is_none else "Same as " + self.param_section.lower()
-        self.checkbox = QCheckBox(label)
+        self.checkbox = QCheckBox(self.check_label)
         if (
-            isinstance(
-                self.the_window.params[self.param_section][self.param_label], str
-            )
-            and "same as"
-            in self.the_window.params[self.param_section][self.param_label]
+            self.the_window.params[self.param_section][self.param_label]
+            == param_if_checked
         ):
-            is_checked = True
-        elif self.the_window.params[self.param_section][self.param_label] == "none":
+
             is_checked = True
         else:
             is_checked = False
         self.checkbox.setChecked(is_checked)
         self.checkbox.stateChanged.connect(self.onStateChanged)
+        self.widget.setEnabled(not is_checked)
         self.layout.addWidget(widget)
         self.layout.addWidget(self.checkbox)
 
     def onStateChanged(self, state):
         self.widget.setEnabled(True if state != 2 else False)
         if state == 2:
-            if self.is_none:
-                new_param = "none"
-            else:
-                new_param = "same as " + self.param_section.lower()
+            new_param = self.param_if_checked
         else:
             new_param = self.widget.getValue()
         rc = {self.param_label: new_param}
