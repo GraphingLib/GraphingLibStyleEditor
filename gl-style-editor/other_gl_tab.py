@@ -1,5 +1,3 @@
-from turtle import color
-
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QScrollArea, QTabWidget, QVBoxLayout, QWidget
 
@@ -29,6 +27,16 @@ def create_other_gl_tab(window):
     textTabScrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
     textTabScrollArea.setWidget(textTab)
     tabWidget.addTab(textTabScrollArea, "Text")
+
+    # table tab
+    tableTabLayout = create_table_tab(window)
+    tableTab = QWidget()
+    tableTab.setLayout(tableTabLayout)
+    tableTabScrollArea = QScrollArea()
+    tableTabScrollArea.setWidgetResizable(True)
+    tableTabScrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+    tableTabScrollArea.setWidget(tableTab)
+    tabWidget.addTab(tableTabScrollArea, "Table")
 
     # Example stubs for each sub-tab
     hlinesVlinesTab = QWidget()
@@ -158,5 +166,42 @@ def create_text_tab(window):
         param_ids=["Text", "v_align"],
     )
     layout.addWidget(v_align)
+
+    return layout
+
+
+def create_table_tab(window):
+    layout = QVBoxLayout()
+    layout.setAlignment(Qt.AlignTop)
+
+    # cell align dropdown
+    cell_align = Dropdown(
+        window,
+        label="Text alignment",
+        items=["left", "center", "right"],
+        param_values=["left", "center", "right"],
+        param_ids=["Table", "cell_align"],
+    )
+    layout.addWidget(cell_align)
+
+    # row align dropdown
+    row_align = Dropdown(
+        window,
+        label="Row headers alignment",
+        items=["left", "center", "right"],
+        param_values=["left", "center", "right"],
+        param_ids=["Table", "row_align"],
+    )
+    layout.addWidget(row_align)
+
+    # col align dropdown
+    col_align = Dropdown(
+        window,
+        label="Column headers alignment",
+        items=["left", "center", "right"],
+        param_values=["left", "center", "right"],
+        param_ids=["Table", "col_align"],
+    )
+    layout.addWidget(col_align)
 
     return layout

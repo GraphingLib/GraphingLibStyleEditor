@@ -28,7 +28,9 @@ from .shapes_tab import create_shapes_tab
 class GLCanvas(FigureCanvas):
     def __init__(self, params: dict, width=5, height=4):
         self.params = params
-        self.gl_fig = gl.Figure(size=(width, height), figure_style="dark")
+        self.gl_fig = gl.Figure(
+            size=(width, height), figure_style="dark", remove_axes=True
+        )
         self.compute_initial_figure()
 
         self.axes = self.gl_fig._axes
@@ -58,13 +60,39 @@ class GLCanvas(FigureCanvas):
         # )
         # self.gl_fig.add_elements(heatmap)
         # self.gl_fig._prepare_figure(default_params=self.params)
-        x_grid, y_grid = np.meshgrid(np.linspace(0, 11, 30), np.linspace(0, 11, 30))
-        u, v = (np.cos(x_grid * 0.2), np.sin(y_grid * 0.3))
+        # x_grid, y_grid = np.meshgrid(np.linspace(0, 11, 30), np.linspace(0, 11, 30))
+        # u, v = (np.cos(x_grid * 0.2), np.sin(y_grid * 0.3))
 
-        stream = gl.Stream(x_grid, y_grid, u, v)
-        point = gl.Point(5, 5)
-        text = gl.Text(7, 7, "Hello World!")
-        self.gl_fig.add_elements(stream, point, text)
+        # stream = gl.Stream(x_grid, y_grid, u, v)
+        # point = gl.Point(5, 5)
+        # text = gl.Text(7, 7, "Hello World!")
+        # self.gl_fig.add_elements(stream, point, text)
+        # self.gl_fig._prepare_figure(default_params=self.params)
+        data = [
+            [5, 223.9369, 0.0323, 0.0532, 0.1764],
+            [10, 223.9367, 0.0324, 0.0533, 0.1765],
+            [15, 223.9367, 0.0325, 0.0534, 0.1764],
+            [20, 223.9387, 0.0326, 0.0535, 0.1763],
+            [25, 223.9385, 0.0327, 0.0536, 0.1761],
+        ]
+        columns = [
+            "Time (s)",
+            "Voltage (V)",
+            "Current 1 (A)",
+            "Current 2 (A)",
+            "Current 3 (A)",
+        ]
+        rows = ["Series 1", "Series 2", "Series 3", "Series 4", "Series 5"]
+        colors = ["#bfbfbf"] * 5
+        table = gl.Table(
+            cell_text=data,
+            col_labels=columns,
+            row_labels=rows,
+            row_colors=colors,
+            col_colors=colors,
+            location="center",
+        )
+        self.gl_fig.add_elements(table)
         self.gl_fig._prepare_figure(default_params=self.params)
 
 
