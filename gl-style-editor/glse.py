@@ -121,6 +121,12 @@ class MainWindow(QMainWindow):
         self.saveButton.setFixedWidth(200)
         self.mainLayout.addWidget(self.saveButton)
 
+        # Add load button
+        self.loadButton = QPushButton("Load", self)
+        self.loadButton.clicked.connect(self.load)
+        self.loadButton.setFixedWidth(200)
+        self.mainLayout.addWidget(self.loadButton)
+
         # Create a horizontal splitter to contain the tab widget and canvas
         self.splitter = QSplitter(Qt.Horizontal)  # type: ignore
 
@@ -133,6 +139,13 @@ class MainWindow(QMainWindow):
         # Set the splitter as the main layout widget
         self.mainLayout.addWidget(self.splitter)
 
+        # Create all the tabs
+        self.create_tabs()
+
+        # Set the main widget
+        self.setCentralWidget(self.mainWidget)
+
+    def create_tabs(self):
         # Combined Figure and Axes tab
         self.figureTab = QWidget()
         figureTabLayout = create_figure_tab(self)
@@ -168,15 +181,39 @@ class MainWindow(QMainWindow):
         self.tabWidget.addTab(self.otherGLTab, "Other GL Objects")
         create_other_gl_tab(self)
 
-        # Set the main widget
-        self.setCentralWidget(self.mainWidget)
-
     def updateFigure(self):
         # self.canvas.deleteLater()
         close()
         canvas = GLCanvas(width=5, height=4, params=self.params)
         self.splitter.replaceWidget(1, canvas)
         self.canvas = canvas
+
+    def load(self):
+        self.params = gl.file_manager.FileLoader("dark").load()
+        self.updateFigure()
+        # Identify the current tab
+        current_tab = self.tabWidget.currentIndex()
+        try:
+            current_sub_tab = (
+                self.tabWidget.currentWidget()
+                .layout()
+                .itemAt(0)
+                .widget()
+                .currentIndex()
+            )
+        except:
+            current_sub_tab = None
+        print(type(current_sub_tab))
+        # remove all tabs and recreate them to update the params
+        for i in range(self.tabWidget.count()):
+            self.tabWidget.removeTab(0)
+        self.create_tabs()
+        # set the current tab
+        self.tabWidget.setCurrentIndex(current_tab)
+        if current_sub_tab is not None:
+            self.tabWidget.currentWidget().layout().itemAt(0).widget().setCurrentIndex(
+                current_sub_tab
+            )
 
     def save(self):
         # get the figure style name
