@@ -111,7 +111,7 @@ class MainWindow(QMainWindow):
 
         # Add a field for the figure style name
         self.figureStyleName = QLineEdit(self)
-        self.figureStyleName.setText("new_thing!")
+        self.figureStyleName.setPlaceholderText("Enter figure style name here...")
         self.figureStyleName.setFixedWidth(200)
         self.mainLayout.addWidget(self.figureStyleName)
 
@@ -208,7 +208,6 @@ class MainWindow(QMainWindow):
             )
         except:
             current_sub_tab = None
-        print(type(current_sub_tab))
         # remove all tabs and recreate them to update the params
         for i in range(self.tabWidget.count()):
             self.tabWidget.removeTab(0)
