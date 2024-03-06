@@ -1,5 +1,12 @@
 from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QScrollArea, QTabWidget, QVBoxLayout, QWidget
+from PyQt5.QtWidgets import (
+    QFrame,
+    QLabel,
+    QScrollArea,
+    QTabWidget,
+    QVBoxLayout,
+    QWidget,
+)
 
 from .widgets import Activator, ColorPickerWidget, Dropdown, Slider
 
@@ -38,11 +45,15 @@ def create_other_gl_tab(window):
     tableTabScrollArea.setWidget(tableTab)
     tabWidget.addTab(tableTabScrollArea, "Table")
 
-    # Example stubs for each sub-tab
+    # Hlines and Vlines tab
+    hlinesVlinesTabLayout = create_hlines_vlines_tab(window)
     hlinesVlinesTab = QWidget()
-    tabWidget.addTab(hlinesVlinesTab, "Hlines and Vlines")
-    tableTab = QWidget()
-    tabWidget.addTab(tableTab, "Table")
+    hlinesVlinesTab.setLayout(hlinesVlinesTabLayout)
+    hlinesVlinesTabScrollArea = QScrollArea()
+    hlinesVlinesTabScrollArea.setWidgetResizable(True)
+    hlinesVlinesTabScrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+    hlinesVlinesTabScrollArea.setWidget(hlinesVlinesTab)
+    tabWidget.addTab(hlinesVlinesTabScrollArea, "Hlines and Vlines")
 
     layout.addWidget(tabWidget)
     window.otherGLTab.setLayout(layout)
@@ -203,5 +214,98 @@ def create_table_tab(window):
         param_ids=["Table", "col_align"],
     )
     layout.addWidget(col_align)
+
+    return layout
+
+
+def create_hlines_vlines_tab(window):
+    layout = QVBoxLayout()
+    layout.setAlignment(Qt.AlignTop)
+
+    # section for hlines
+    hlines_label = QLabel("Hlines:")
+    hlines_label.setStyleSheet("font-weight: bold;")
+    layout.addWidget(hlines_label)
+
+    hlines_line = QFrame()
+    hlines_line.setFrameShape(QFrame.HLine)
+    hlines_line.setFrameShadow(QFrame.Sunken)
+    layout.addWidget(hlines_line)
+
+    # Color picker for hlines
+    initial_color = window.params["Hlines"]["colors"]
+    color = ColorPickerWidget(
+        window,
+        "Color",
+        initial_color=initial_color,
+        param_ids=["Hlines", ["colors"]],
+        activated_on_init=True,
+    )
+    layout.addWidget(color)
+
+    # line width slider for hlines
+    line_width_slider = Slider(
+        window=window,
+        label="Line Width",
+        mini=0,
+        maxi=20,
+        tick_interval=2,
+        param_ids=["Hlines", "line_widths"],
+        conversion_factor=2,
+    )
+    layout.addWidget(line_width_slider)
+
+    # line style dropdown for hlines
+    line_style_dropdown = Dropdown(
+        window,
+        label="Line Style",
+        items=["solid", "dashed", "dotted", "dashdot"],
+        param_values=["-", "--", ":", "-."],
+        param_ids=["Hlines", "line_styles"],
+    )
+    layout.addWidget(line_style_dropdown)
+
+    # section for vlines
+    vlines_label = QLabel("Vlines:")
+    vlines_label.setStyleSheet("font-weight: bold;")
+    layout.addWidget(vlines_label)
+
+    vlines_line = QFrame()
+    vlines_line.setFrameShape(QFrame.HLine)
+    vlines_line.setFrameShadow(QFrame.Sunken)
+    layout.addWidget(vlines_line)
+
+    # Color picker for vlines
+    initial_color = window.params["Vlines"]["colors"]
+    color = ColorPickerWidget(
+        window,
+        "Color",
+        initial_color=initial_color,
+        param_ids=["Vlines", ["colors"]],
+        activated_on_init=True,
+    )
+    layout.addWidget(color)
+
+    # line width slider for vlines
+    line_width_slider = Slider(
+        window=window,
+        label="Line Width",
+        mini=0,
+        maxi=20,
+        tick_interval=2,
+        param_ids=["Vlines", "line_widths"],
+        conversion_factor=2,
+    )
+    layout.addWidget(line_width_slider)
+
+    # line style dropdown for vlines
+    line_style_dropdown = Dropdown(
+        window,
+        label="Line Style",
+        items=["solid", "dashed", "dotted", "dashdot"],
+        param_values=["solid", "--", ":", "-."],
+        param_ids=["Vlines", "line_styles"],
+    )
+    layout.addWidget(line_style_dropdown)
 
     return layout
