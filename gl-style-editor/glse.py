@@ -189,7 +189,12 @@ class MainWindow(QMainWindow):
         self.canvas = canvas
 
     def load(self):
-        self.params = gl.file_manager.FileLoader("dark").load()
+        # get text from the figure style name field
+        name = self.figureStyleName.text()
+        try:
+            self.params = gl.file_manager.FileLoader(name).load()
+        except:
+            pass
         self.updateFigure()
         # Identify the current tab
         current_tab = self.tabWidget.currentIndex()
