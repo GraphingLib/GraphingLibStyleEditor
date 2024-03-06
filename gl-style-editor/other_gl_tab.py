@@ -10,6 +10,7 @@ def create_other_gl_tab(window):
     layout = QVBoxLayout()
     tabWidget = QTabWidget()
 
+    # point tab
     pointTabLayout = create_point_tab(window)
     pointTab = QWidget()
     pointTab.setLayout(pointTabLayout)
@@ -19,13 +20,19 @@ def create_other_gl_tab(window):
     pointTabScrollArea.setWidget(pointTab)
     tabWidget.addTab(pointTabScrollArea, "Point")
 
+    # text tab
+    textTabLayout = create_text_tab(window)
+    textTab = QWidget()
+    textTab.setLayout(textTabLayout)
+    textTabScrollArea = QScrollArea()
+    textTabScrollArea.setWidgetResizable(True)
+    textTabScrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+    textTabScrollArea.setWidget(textTab)
+    tabWidget.addTab(textTabScrollArea, "Text")
+
     # Example stubs for each sub-tab
     hlinesVlinesTab = QWidget()
     tabWidget.addTab(hlinesVlinesTab, "Hlines and Vlines")
-    pointTab = QWidget()
-    tabWidget.addTab(pointTab, "Point")
-    textTab = QWidget()
-    tabWidget.addTab(textTab, "Text")
     tableTab = QWidget()
     tabWidget.addTab(tableTab, "Table")
 
@@ -113,5 +120,43 @@ def create_point_tab(window):
         param_ids=["Point", "marker_style"],
     )
     layout.addWidget(marker_style_dropdown)
+
+    return layout
+
+
+def create_text_tab(window):
+    layout = QVBoxLayout()
+    layout.setAlignment(Qt.AlignTop)
+
+    # create text color picker
+    initial_color = window.params["Text"]["color"]
+    color = ColorPickerWidget(
+        window,
+        "Text Color",
+        initial_color=initial_color,
+        param_ids=["Text", ["color"]],
+        activated_on_init=True,
+    )
+    layout.addWidget(color)
+
+    # create halign dropdown
+    h_align = Dropdown(
+        window,
+        label="Horizontal Alignment",
+        items=["left", "center", "right"],
+        param_values=["left", "center", "right"],
+        param_ids=["Text", "h_align"],
+    )
+    layout.addWidget(h_align)
+
+    # create valign dropdown
+    v_align = Dropdown(
+        window,
+        label="Vertical Alignment",
+        items=["baseline", "bottom", "center", "center baseline", "top"],
+        param_values=["baseline", "bottom", "center", "center_baseline", "top"],
+        param_ids=["Text", "v_align"],
+    )
+    layout.addWidget(v_align)
 
     return layout

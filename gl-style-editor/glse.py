@@ -63,7 +63,8 @@ class GLCanvas(FigureCanvas):
 
         stream = gl.Stream(x_grid, y_grid, u, v)
         point = gl.Point(5, 5)
-        self.gl_fig.add_elements(stream, point)
+        text = gl.Text(7, 7, "Hello World!")
+        self.gl_fig.add_elements(stream, point, text)
         self.gl_fig._prepare_figure(default_params=self.params)
 
 
