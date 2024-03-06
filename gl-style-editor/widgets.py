@@ -1,5 +1,6 @@
 from typing import Optional
 
+from matplotlib.colors import is_color_like, to_hex
 from PyQt5.QtCore import QSortFilterProxyModel, QStringListModel, Qt, pyqtSignal
 from PyQt5.QtGui import QColor
 from PyQt5.QtWidgets import (
@@ -102,13 +103,23 @@ class ColorPickerWidget(QWidget):
         self.layout.addWidget(self.pasteButton)
 
     def onColorChanged(self, color):
-        self.colorEdit.setText(color)
-        rc = {label: color for label in self.param_labels}
-        self.the_window.params[self.param_section].update(rc)
-        self.the_window.updateFigure()
+        if self.colorEdit.text() == "" or (
+            color != self.colorEdit.text() and color != to_hex(self.colorEdit.text())
+        ):
+            self.colorEdit.setText(color)
+            rc = {label: color for label in self.param_labels}
+            self.the_window.params[self.param_section].update(rc)
+            self.the_window.updateFigure()
 
     def onColorEditTextChanged(self, text):
         if QColor(text).isValid():
+            self.colorButton.setColor(text)
+            param = {label: text for label in self.param_labels}
+            self.the_window.params[self.param_section].update(param)
+            self.the_window.updateFigure()
+        elif is_color_like(text):
+            # get the hex value of the color using matplotlib
+            text = to_hex(text)
             self.colorButton.setColor(text)
             param = {label: text for label in self.param_labels}
             self.the_window.params[self.param_section].update(param)
