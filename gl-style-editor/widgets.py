@@ -107,23 +107,17 @@ class ColorPickerWidget(QWidget):
             color != self.colorEdit.text() and color != to_hex(self.colorEdit.text())
         ):
             self.colorEdit.setText(color)
-            rc = {label: color for label in self.param_labels}
-            self.the_window.params[self.param_section].update(rc)
-            self.the_window.updateFigure()
+            self.the_window.update_params(self.param_section, self.param_labels, color)
 
     def onColorEditTextChanged(self, text):
         if QColor(text).isValid():
             self.colorButton.setColor(text)
-            param = {label: text for label in self.param_labels}
-            self.the_window.params[self.param_section].update(param)
-            self.the_window.updateFigure()
+            self.the_window.update_params(self.param_section, self.param_labels, text)
         elif is_color_like(text):
             # get the hex value of the color using matplotlib
             text = to_hex(text)
             self.colorButton.setColor(text)
-            param = {label: text for label in self.param_labels}
-            self.the_window.params[self.param_section].update(param)
-            self.the_window.updateFigure()
+            self.the_window.update_params(self.param_section, self.param_labels, text)
 
     def getValue(self):
         return self.colorButton._color
@@ -143,7 +137,7 @@ class Activator(QWidget):
         self.widget = widget
         self.param_section = param_ids[0]
         self.param_label = param_ids[1]
-        self.layout = QHBoxLayout(self)
+        self.layout = QHBoxLayout(self)  # type: ignore
         self.check_label = check_label
         self.param_if_checked = param_if_checked
 
@@ -168,9 +162,7 @@ class Activator(QWidget):
             new_param = self.param_if_checked
         else:
             new_param = self.widget.getValue()
-        rc = {self.param_label: new_param}
-        self.the_window.params[self.param_section].update(rc)
-        self.the_window.updateFigure()
+        self.the_window.update_params(self.param_section, self.param_label, new_param)
 
 
 class Slider(QWidget):
@@ -191,7 +183,8 @@ class Slider(QWidget):
         self.factor = conversion_factor
 
         self.label = QLabel(label)
-        self.slider = QSlider(Qt.Horizontal)
+        self.slider = QSlider(Qt.Horizontal)  # type: ignore
+        self.slider.wheelEvent = lambda event: event.ignore()  # type: ignore
         self.slider.setMinimum(mini)
         self.slider.setMaximum(maxi)
         if isinstance(
@@ -210,7 +203,7 @@ class Slider(QWidget):
             )
         )
 
-        self.layout = QHBoxLayout(self)
+        self.layout = QHBoxLayout(self)  # type: ignore
         self.layout.addWidget(self.label)
         self.layout.addWidget(self.slider)
 
@@ -219,9 +212,7 @@ class Slider(QWidget):
         # turn into int if it's a whole number
         if new_value == int(new_value):
             new_value = int(new_value)
-        rc = {self.param_label: new_value}
-        self.the_window.params[self.param_section].update(rc)
-        self.the_window.updateFigure()
+        self.the_window.update_params(self.param_section, self.param_label, new_value)
 
     def getValue(self):
         return self.slider.value() / self.factor
@@ -271,7 +262,7 @@ class Dropdown(QWidget):
             is_enabled = True
         self.setEnabled(is_enabled)
 
-        self.layout = QHBoxLayout(self)
+        self.layout = QHBoxLayout(self)  # type: ignore
         self.layout.addWidget(self.label)
         self.layout.addWidget(self.dropdown)
 
@@ -279,9 +270,9 @@ class Dropdown(QWidget):
         return self.dropdown.currentIndex()
 
     def onCurrentIndexChanged(self, index):
-        rc = {self.param_label: self.param_values[index]}
-        self.the_window.params[self.param_section].update(rc)
-        self.the_window.updateFigure()
+        self.the_window.update_params(
+            self.param_section, self.param_label, self.param_values[index]
+        )
 
 
 class CheckBox(QWidget):
@@ -296,13 +287,12 @@ class CheckBox(QWidget):
             self.the_window.params[self.param_section][self.param_label]
         )
         self.checkbox.stateChanged.connect(self.onStateChanged)
-        self.layout = QHBoxLayout(self)
+        self.layout = QHBoxLayout(self)  # type: ignore
         self.layout.addWidget(self.checkbox)
 
     def onStateChanged(self, state):
-        rc = {self.param_label: True if state == 2 else False}
-        self.the_window.params[self.param_section].update(rc)
-        self.the_window.updateFigure()
+        value = True if state == 2 else False
+        self.the_window.update_params(self.param_section, self.param_label, value)
 
 
 class IntegerBox(QWidget):
@@ -319,14 +309,12 @@ class IntegerBox(QWidget):
         self.spinbox.setValue(initial_value)
         self.spinbox.valueChanged.connect(self.onValueChanged)
 
-        self.layout = QHBoxLayout(self)
+        self.layout = QHBoxLayout(self)  # type: ignore
         self.layout.addWidget(self.label)
         self.layout.addWidget(self.spinbox)
 
     def onValueChanged(self, value):
-        rc = {self.param_label: value}
-        self.the_window.params[self.param_section].update(rc)
-        self.the_window.updateFigure()
+        self.the_window.update_params(self.param_section, self.param_label, value)
 
     def getValue(self):
         return self.spinbox.value()
@@ -347,14 +335,14 @@ class ListOptions(QWidget):
         self.model = QStringListModel(options)
 
         self.proxyModel = QSortFilterProxyModel(self)
-        self.proxyModel.setFilterCaseSensitivity(Qt.CaseInsensitive)
+        self.proxyModel.setFilterCaseSensitivity(Qt.CaseInsensitive)  # type: ignore
         self.proxyModel.setSourceModel(self.model)
         self.listView.setModel(self.proxyModel)
 
         # Connect the QLineEdit's textChanged signal to update the filter
         self.filterLineEdit.textChanged.connect(self.proxyModel.setFilterFixedString)
 
-        self.layout = QVBoxLayout(self)
+        self.layout = QVBoxLayout(self)  # type: ignore
         self.layout.addWidget(self.labelWidget)
         self.layout.addWidget(self.filterLineEdit)
         self.layout.addWidget(self.listView)
@@ -366,13 +354,13 @@ class ListOptions(QWidget):
         # Assuming the parameter needs the text of the selected option
         selectedIndexes = self.listView.selectedIndexes()
         if selectedIndexes:
-            selectedText = self.model.data(selectedIndexes[0], Qt.DisplayRole)
-            rc = {self.param_label: selectedText}
-            self.the_window.params[self.param_section].update(rc)
-            self.the_window.updateFigure()
+            selectedText = self.model.data(selectedIndexes[0], Qt.DisplayRole)  # type: ignore
+            self.the_window.update_params(
+                self.param_section, self.param_label, selectedText
+            )
 
     def getCurrentSelection(self):
         selectedIndexes = self.listView.selectedIndexes()
         if selectedIndexes:
-            return self.model.data(selectedIndexes[0], Qt.DisplayRole)
+            return self.model.data(selectedIndexes[0], Qt.DisplayRole)  # type: ignore
         return None
