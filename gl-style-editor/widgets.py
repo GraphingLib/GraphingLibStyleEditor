@@ -107,23 +107,17 @@ class ColorPickerWidget(QWidget):
             color != self.colorEdit.text() and color != to_hex(self.colorEdit.text())
         ):
             self.colorEdit.setText(color)
-            rc = {label: color for label in self.param_labels}
-            self.the_window.params[self.param_section].update(rc)
-            self.the_window.updateFigure()
+            self.the_window.update_params(self.param_section, self.param_labels, color)
 
     def onColorEditTextChanged(self, text):
         if QColor(text).isValid():
             self.colorButton.setColor(text)
-            param = {label: text for label in self.param_labels}
-            self.the_window.params[self.param_section].update(param)
-            self.the_window.updateFigure()
+            self.the_window.update_params(self.param_section, self.param_labels, text)
         elif is_color_like(text):
             # get the hex value of the color using matplotlib
             text = to_hex(text)
             self.colorButton.setColor(text)
-            param = {label: text for label in self.param_labels}
-            self.the_window.params[self.param_section].update(param)
-            self.the_window.updateFigure()
+            self.the_window.update_params(self.param_section, self.param_labels, text)
 
     def getValue(self):
         return self.colorButton._color
@@ -168,9 +162,7 @@ class Activator(QWidget):
             new_param = self.param_if_checked
         else:
             new_param = self.widget.getValue()
-        rc = {self.param_label: new_param}
-        self.the_window.params[self.param_section].update(rc)
-        self.the_window.updateFigure()
+        self.the_window.update_params(self.param_section, self.param_label, new_param)
 
 
 class Slider(QWidget):
@@ -220,9 +212,7 @@ class Slider(QWidget):
         # turn into int if it's a whole number
         if new_value == int(new_value):
             new_value = int(new_value)
-        rc = {self.param_label: new_value}
-        self.the_window.params[self.param_section].update(rc)
-        self.the_window.updateFigure()
+        self.the_window.update_params(self.param_section, self.param_label, new_value)
 
     def getValue(self):
         return self.slider.value() / self.factor
@@ -280,9 +270,9 @@ class Dropdown(QWidget):
         return self.dropdown.currentIndex()
 
     def onCurrentIndexChanged(self, index):
-        rc = {self.param_label: self.param_values[index]}
-        self.the_window.params[self.param_section].update(rc)
-        self.the_window.updateFigure()
+        self.the_window.update_params(
+            self.param_section, self.param_label, self.param_values[index]
+        )
 
 
 class CheckBox(QWidget):
@@ -301,9 +291,8 @@ class CheckBox(QWidget):
         self.layout.addWidget(self.checkbox)
 
     def onStateChanged(self, state):
-        rc = {self.param_label: True if state == 2 else False}
-        self.the_window.params[self.param_section].update(rc)
-        self.the_window.updateFigure()
+        value = True if state == 2 else False
+        self.the_window.update_params(self.param_section, self.param_label, value)
 
 
 class IntegerBox(QWidget):
@@ -325,9 +314,7 @@ class IntegerBox(QWidget):
         self.layout.addWidget(self.spinbox)
 
     def onValueChanged(self, value):
-        rc = {self.param_label: value}
-        self.the_window.params[self.param_section].update(rc)
-        self.the_window.updateFigure()
+        self.the_window.update_params(self.param_section, self.param_label, value)
 
     def getValue(self):
         return self.spinbox.value()
@@ -368,9 +355,9 @@ class ListOptions(QWidget):
         selectedIndexes = self.listView.selectedIndexes()
         if selectedIndexes:
             selectedText = self.model.data(selectedIndexes[0], Qt.DisplayRole)  # type: ignore
-            rc = {self.param_label: selectedText}
-            self.the_window.params[self.param_section].update(rc)
-            self.the_window.updateFigure()
+            self.the_window.update_params(
+                self.param_section, self.param_label, selectedText
+            )
 
     def getCurrentSelection(self):
         selectedIndexes = self.listView.selectedIndexes()

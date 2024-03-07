@@ -1,14 +1,16 @@
 import sys
 
 import graphinglib as gl
-import numpy as np
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.pyplot import close
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (
     QApplication,
+    QHBoxLayout,
+    QLabel,
     QLineEdit,
     QMainWindow,
+    QMessageBox,
     QPushButton,
     QScrollArea,
     QSplitter,
@@ -103,29 +105,48 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         # Updatable parameters
-        self.params = gl.file_manager.FileLoader("plain").load()
+        self.current_style = "plain"
+        self.unsaved_changes = {}
+        self.params = gl.file_manager.FileLoader(self.current_style).load()
+        self.original_params = {}
+        for section in self.params:
+            self.original_params[section] = {}
+            for param in self.params[section]:
+                self.original_params[section][param] = self.params[section][param]
 
         # Main widget and layout
         self.mainWidget = QWidget(self)
         self.mainLayout = QVBoxLayout(self.mainWidget)
 
         # Add a field for the figure style name
+        self.upperLayout = QHBoxLayout()
+        self.mainLayout.addLayout(self.upperLayout)
+
+        # Display the name of the current style with a label
+        self.styleNameLabel = QLabel(self)
+        self.styleNameLabel.setText("Current Style: " + self.current_style)
+        # self.styleNameLabel.setFixedWidth(250)
+
+        # Add a field for the figure style name
+        self.saveLoadLayout = QVBoxLayout()
+        self.upperLayout.addLayout(self.saveLoadLayout)
+        self.upperLayout.addWidget(self.styleNameLabel)
         self.figureStyleName = QLineEdit(self)
         self.figureStyleName.setPlaceholderText("Enter figure style name here...")
         self.figureStyleName.setFixedWidth(200)
-        self.mainLayout.addWidget(self.figureStyleName)
+        self.saveLoadLayout.addWidget(self.figureStyleName)
 
         # Add save button
         self.saveButton = QPushButton("Save", self)
         self.saveButton.clicked.connect(self.save)
         self.saveButton.setFixedWidth(200)
-        self.mainLayout.addWidget(self.saveButton)
+        self.saveLoadLayout.addWidget(self.saveButton)
 
         # Add load button
         self.loadButton = QPushButton("Load", self)
         self.loadButton.clicked.connect(self.load)
         self.loadButton.setFixedWidth(200)
-        self.mainLayout.addWidget(self.loadButton)
+        self.saveLoadLayout.addWidget(self.loadButton)
 
         # Create a horizontal splitter to contain the tab widget and canvas
         self.splitter = QSplitter(Qt.Horizontal)  # type: ignore
@@ -189,12 +210,22 @@ class MainWindow(QMainWindow):
         self.canvas = canvas
 
     def load(self):
+        if self.unsaved_changes:
+            msg = "You have unsaved changes. Are you sure you want to load a new style?"
+            reply = QMessageBox.question(
+                self, "Unsaved Changes", msg, QMessageBox.Yes, QMessageBox.No
+            )
+            if reply == QMessageBox.No:
+                return
         # get text from the figure style name field
         name = self.figureStyleName.text()
         try:
             self.params = gl.file_manager.FileLoader(name).load()
+            self.current_style = name
+            self.styleNameLabel.setText("Current Style: " + self.current_style)
         except:
-            pass
+            QMessageBox.critical(self, "Error", "Style not found")
+
         self.updateFigure()
         # Identify the current tab
         current_tab = self.tabWidget.currentIndex()
@@ -218,11 +249,82 @@ class MainWindow(QMainWindow):
             self.tabWidget.currentWidget().layout().itemAt(0).widget().setCurrentIndex(
                 current_sub_tab
             )
+        # update the original params
+        self.original_params = {}
+        for section in self.params:
+            self.original_params[section] = {}
+            for param in self.params[section]:
+                self.original_params[section][param] = self.params[section][param]
+        # clear unsaved changes
+        self.unsaved_changes = {}
+
+        # clear the figure style field
+        self.figureStyleName.setText("")
 
     def save(self):
         # get the figure style name
         name = self.figureStyleName.text()
+        if not name:
+            # show message saying that will save to the current style (ask for confirmation)
+            msg = f"You are about to save to the current style: {self.current_style}. Are you sure?"
+            reply = QMessageBox.question(
+                self, "Save to Current Style", msg, QMessageBox.Yes, QMessageBox.No
+            )
+            if reply == QMessageBox.No:
+                return
+            name = self.current_style
+
         gl.file_manager.FileSaver(name, self.params).save()
+
+        # update the current style
+        self.current_style = name
+        self.styleNameLabel.setText("Current Style: " + self.current_style)
+
+        # clear unsaved changes
+        self.unsaved_changes = {}
+
+        # update the original params
+        self.original_params = {}
+        for section in self.params:
+            self.original_params[section] = {}
+            for param in self.params[section]:
+                self.original_params[section][param] = self.params[section][param]
+
+        # clear the figure style field
+        self.figureStyleName.setText("")
+
+    def update_params(self, section: str, params_name: str | list, value):
+        if not isinstance(params_name, list):
+            params_name = [params_name]
+        for p in params_name:
+            # Update the parameters
+            self.params[section][p] = value
+
+            # Check if the new value is different from the original
+            orig = self.original_params[section][p]
+            if orig != value:
+                # set value in unsaved changes dict (may have to create section/params_name key)
+                if section not in self.unsaved_changes:
+                    self.unsaved_changes[section] = {}
+                self.unsaved_changes[section][p] = value
+            else:
+                # remove value from unsaved changes dict
+                if section in self.unsaved_changes:
+                    if p in self.unsaved_changes[section]:
+                        del self.unsaved_changes[section][p]
+                    if not self.unsaved_changes[section]:
+                        del self.unsaved_changes[section]
+
+        # Update the figure
+        self.updateFigure()
+
+        # Update the style name label to indicate unsaved changes
+        if self.unsaved_changes:
+            self.styleNameLabel.setText(
+                "Current Style: " + self.current_style + " (unsaved changes)"
+            )
+        else:
+            self.styleNameLabel.setText("Current Style: " + self.current_style)
 
 
 def run():
