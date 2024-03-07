@@ -39,12 +39,12 @@ class GLCanvas(FigureCanvas):
         super(GLCanvas, self).__init__(self.fig)
 
     def compute_initial_figure(self):
-        # curve = gl.Curve([0, 1, 2, 3, 4], [10, 1, 20, 3, 40])
-        # # curve.add_errorbars(y_error=2)
-        # curve2 = gl.Curve([0, 1, 2, 3, 4], [11, 2, 21, 4, 41]) + 1
-        # curve3 = gl.Curve([0, 1, 2, 3, 4], [12, 3, 22, 5, 42]) + 2
-        # self.gl_fig.add_elements(curve, curve2, curve3)
-        # self.gl_fig._prepare_figure(default_params=self.params)
+        curve = gl.Curve([0, 1, 2, 3, 4], [10, 1, 20, 3, 40])
+        # curve.add_errorbars(y_error=2)
+        curve2 = gl.Curve([0, 1, 2, 3, 4], [11, 2, 21, 4, 41]) + 1
+        curve3 = gl.Curve([0, 1, 2, 3, 4], [12, 3, 22, 5, 42]) + 2
+        self.gl_fig.add_elements(curve, curve2, curve3)
+        self.gl_fig._prepare_figure(default_params=self.params)
         # contour = gl.Contour.from_function(
         #     lambda x, y: np.sin(x) + np.cos(y), (-10, 10), (-10, 10)
         # )
@@ -95,10 +95,10 @@ class GLCanvas(FigureCanvas):
         # )
         # self.gl_fig.add_elements(table)
         # self.gl_fig._prepare_figure(default_params=self.params)
-        hlines = gl.Hlines(y=[1, 2, 3], x_min=0, x_max=10)
-        vlines = gl.Vlines(x=[1, 2, 3], y_min=0, y_max=10)
-        self.gl_fig.add_elements(hlines, vlines)
-        self.gl_fig._prepare_figure(default_params=self.params)
+        # hlines = gl.Hlines(y=[1, 2, 3], x_min=0, x_max=10)
+        # vlines = gl.Vlines(x=[1, 2, 3], y_min=0, y_max=10)
+        # self.gl_fig.add_elements(hlines, vlines)
+        # self.gl_fig._prepare_figure(default_params=self.params)
 
 
 class MainWindow(QMainWindow):
@@ -138,6 +138,9 @@ class MainWindow(QMainWindow):
         self.figureStyleName = QLineEdit(self)
         self.figureStyleName.setPlaceholderText("Enter figure style name here...")
         self.figureStyleName.setFixedWidth(200)
+        self.figureStyleName.setToolTip(
+            "Use this field to save to a specific/new style or load a style by name.\nLeave blank to save to the current style."
+        )
         self.saveLoadLayout.addWidget(self.figureStyleName)
 
         self.upperLayout.addLayout(self.saveLoadLayout)
