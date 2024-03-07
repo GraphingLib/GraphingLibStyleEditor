@@ -126,16 +126,23 @@ class MainWindow(QMainWindow):
         # Display the name of the current style with a label
         self.styleNameLabel = QLabel(self)
         self.styleNameLabel.setText("Current Style: " + self.current_style)
-        # self.styleNameLabel.setFixedWidth(250)
+        self.styleNameLabel.setFixedWidth(250)
+        self.styleNameLabel.setWordWrap(True)
+        # add button to view unsaved changes
+        self.viewUnsavedButton = QPushButton("View Unsaved Changes", self)
+        self.viewUnsavedButton.clicked.connect(self.view_unsaved_changes)
+        self.viewUnsavedButton.setFixedWidth(200)
 
         # Add a field for the figure style name
         self.saveLoadLayout = QVBoxLayout()
-        self.upperLayout.addLayout(self.saveLoadLayout)
-        self.upperLayout.addWidget(self.styleNameLabel)
         self.figureStyleName = QLineEdit(self)
         self.figureStyleName.setPlaceholderText("Enter figure style name here...")
         self.figureStyleName.setFixedWidth(200)
         self.saveLoadLayout.addWidget(self.figureStyleName)
+
+        self.upperLayout.addLayout(self.saveLoadLayout)
+        self.upperLayout.addWidget(self.styleNameLabel)
+        self.upperLayout.addWidget(self.viewUnsavedButton)
 
         # Add save button
         self.saveButton = QPushButton("Save", self)
@@ -326,6 +333,17 @@ class MainWindow(QMainWindow):
             )
         else:
             self.styleNameLabel.setText("Current Style: " + self.current_style)
+
+    def view_unsaved_changes(self):
+        msg = "Unsaved Changes:\n"
+        if not self.unsaved_changes:
+            msg += "No unsaved changes"
+        else:
+            for section in self.unsaved_changes:
+                msg += f"\n{section}:\n"
+                for param in self.unsaved_changes[section]:
+                    msg += f"{param}: {self.unsaved_changes[section][param]}\n"
+        QMessageBox.information(self, "Unsaved Changes", msg)
 
     def closeEvent(self, a0: QCloseEvent | None) -> None:
         # Check if there are unsaved changes
