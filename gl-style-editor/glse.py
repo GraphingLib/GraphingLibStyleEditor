@@ -4,6 +4,7 @@ import graphinglib as gl
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.pyplot import close
 from PyQt5.QtCore import Qt
+from PyQt5.QtGui import QCloseEvent
 from PyQt5.QtWidgets import (
     QApplication,
     QHBoxLayout,
@@ -325,6 +326,17 @@ class MainWindow(QMainWindow):
             )
         else:
             self.styleNameLabel.setText("Current Style: " + self.current_style)
+
+    def closeEvent(self, a0: QCloseEvent | None) -> None:
+        # Check if there are unsaved changes
+        if self.unsaved_changes:
+            msg = "You have unsaved changes. Are you sure you want to exit?"
+            reply = QMessageBox.question(
+                self, "Unsaved Changes", msg, QMessageBox.Yes, QMessageBox.No
+            )
+            if reply == QMessageBox.No:
+                a0.ignore()
+                return
 
 
 def run():
