@@ -8,6 +8,7 @@ from PyQt5.QtGui import QCloseEvent
 from PyQt5.QtWidgets import (
     QApplication,
     QHBoxLayout,
+    QInputDialog,
     QLabel,
     QLineEdit,
     QMainWindow,
@@ -104,6 +105,7 @@ class GLCanvas(FigureCanvas):
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
+        self.setWindowTitle("GraphingLib Style Editor")
 
         # Updatable parameters
         self.current_style = "plain"
@@ -119,6 +121,29 @@ class MainWindow(QMainWindow):
         self.mainWidget = QWidget(self)
         self.mainLayout = QVBoxLayout(self.mainWidget)
 
+        # Add menu bar
+        self.menuBar = self.menuBar()
+        self.fileMenu = self.menuBar.addMenu("File")
+        self.editMenu = self.menuBar.addMenu("Edit")
+        self.viewMenu = self.menuBar.addMenu("View")
+        self.helpMenu = self.menuBar.addMenu("Help")
+
+        # Add actions to the file menu
+        self.newAction = self.fileMenu.addAction("New")
+        self.openAction = self.fileMenu.addAction("Open")
+        self.saveAction = self.fileMenu.addAction("Save")
+        self.saveAsAction = self.fileMenu.addAction("Save As")
+
+        self.saveAction.triggered.connect(self.save)
+        self.saveAsAction.triggered.connect(self.save_as)
+        self.openAction.triggered.connect(self.load)
+        self.newAction.triggered.connect(self.new)
+
+        # Connect key shortcuts to the file menu actions
+        self.newAction.setShortcut("Ctrl+N")
+        self.openAction.setShortcut("Ctrl+O")
+        self.saveAction.setShortcut("Ctrl+S")
+
         # Add a field for the figure style name
         self.upperLayout = QHBoxLayout()
         self.mainLayout.addLayout(self.upperLayout)
@@ -133,31 +158,8 @@ class MainWindow(QMainWindow):
         self.viewUnsavedButton.clicked.connect(self.view_unsaved_changes)
         self.viewUnsavedButton.setFixedWidth(200)
 
-        # Add a field for the figure style name
-        self.saveLoadLayout = QVBoxLayout()
-        self.figureStyleName = QLineEdit(self)
-        self.figureStyleName.setPlaceholderText("Enter figure style name here...")
-        self.figureStyleName.setFixedWidth(200)
-        self.figureStyleName.setToolTip(
-            "Use this field to save to a specific/new style or load a style by name.\nLeave blank to save to the current style."
-        )
-        self.saveLoadLayout.addWidget(self.figureStyleName)
-
-        self.upperLayout.addLayout(self.saveLoadLayout)
         self.upperLayout.addWidget(self.styleNameLabel)
         self.upperLayout.addWidget(self.viewUnsavedButton)
-
-        # Add save button
-        self.saveButton = QPushButton("Save", self)
-        self.saveButton.clicked.connect(self.save)
-        self.saveButton.setFixedWidth(200)
-        self.saveLoadLayout.addWidget(self.saveButton)
-
-        # Add load button
-        self.loadButton = QPushButton("Load", self)
-        self.loadButton.clicked.connect(self.load)
-        self.loadButton.setFixedWidth(200)
-        self.saveLoadLayout.addWidget(self.loadButton)
 
         # Create a horizontal splitter to contain the tab widget and canvas
         self.splitter = QSplitter(Qt.Horizontal)  # type: ignore
@@ -228,63 +230,57 @@ class MainWindow(QMainWindow):
             )
             if reply == QMessageBox.No:
                 return
-        # get text from the figure style name field
-        name = self.figureStyleName.text()
-        try:
-            self.params = gl.file_manager.FileLoader(name).load()
-            self.current_style = name
+        # Make dialog to select style to load from list of styles
+        styles = gl.get_styles(gl=True)
+        styles = list(dict.fromkeys(styles))
+        styles = [s for s in styles if s]
+        style, ok = QInputDialog.getItem(
+            self, "Load Style", "Select a style to load", styles, 0, False
+        )
+        if ok:
+            # Load the style
+            self.params = gl.file_manager.FileLoader(style).load()
+            # update the current style
+            self.current_style = style
             self.styleNameLabel.setText("Current Style: " + self.current_style)
-        except:
-            QMessageBox.critical(self, "Error", "Style not found")
 
-        self.updateFigure()
-        # Identify the current tab
-        current_tab = self.tabWidget.currentIndex()
-        try:
-            current_sub_tab = (
-                self.tabWidget.currentWidget()
-                .layout()
-                .itemAt(0)
-                .widget()
-                .currentIndex()
-            )
-        except:
-            current_sub_tab = None
-        # remove all tabs and recreate them to update the params
-        for i in range(self.tabWidget.count()):
-            self.tabWidget.removeTab(0)
-        self.create_tabs()
-        # set the current tab
-        self.tabWidget.setCurrentIndex(current_tab)
-        if current_sub_tab is not None:
-            self.tabWidget.currentWidget().layout().itemAt(0).widget().setCurrentIndex(
-                current_sub_tab
-            )
-        # update the original params
-        self.original_params = {}
-        for section in self.params:
-            self.original_params[section] = {}
-            for param in self.params[section]:
-                self.original_params[section][param] = self.params[section][param]
-        # clear unsaved changes
-        self.unsaved_changes = {}
-
-        # clear the figure style field
-        self.figureStyleName.setText("")
+            self.updateFigure()
+            # Identify the current tab
+            current_tab = self.tabWidget.currentIndex()
+            try:
+                current_sub_tab = (
+                    self.tabWidget.currentWidget()
+                    .layout()
+                    .itemAt(0)
+                    .widget()
+                    .currentIndex()
+                )
+            except:
+                current_sub_tab = None
+            # remove all tabs and recreate them to update the params
+            for i in range(self.tabWidget.count()):
+                self.tabWidget.removeTab(0)
+            self.create_tabs()
+            # set the current tab
+            self.tabWidget.setCurrentIndex(current_tab)
+            if current_sub_tab is not None:
+                self.tabWidget.currentWidget().layout().itemAt(
+                    0
+                ).widget().setCurrentIndex(current_sub_tab)
+            # update the original params
+            self.original_params = {}
+            for section in self.params:
+                self.original_params[section] = {}
+                for param in self.params[section]:
+                    self.original_params[section][param] = self.params[section][param]
+            # clear unsaved changes
+            self.unsaved_changes = {}
 
     def save(self):
-        # get the figure style name
-        name = self.figureStyleName.text()
-        if not name:
-            # show message saying that will save to the current style (ask for confirmation)
-            msg = f"You are about to save to the current style: {self.current_style}. Are you sure?"
-            reply = QMessageBox.question(
-                self, "Save to Current Style", msg, QMessageBox.Yes, QMessageBox.No
-            )
-            if reply == QMessageBox.No:
-                return
-            name = self.current_style
-
+        if self.current_style == "no name":
+            self.save_as()
+            return
+        name = self.current_style
         gl.file_manager.FileSaver(name, self.params).save()
 
         # update the current style
@@ -301,8 +297,96 @@ class MainWindow(QMainWindow):
             for param in self.params[section]:
                 self.original_params[section][param] = self.params[section][param]
 
-        # clear the figure style field
-        self.figureStyleName.setText("")
+    def save_as(self):
+        # ask for a new style name
+        bad_name = True
+        while bad_name:
+            name, ok = QInputDialog.getText(
+                self, "Save As", "Enter a new style name:", QLineEdit.Normal, ""
+            )
+            if ok and " " in name:
+                msg = "Style names cannot contain spaces. Please enter a new name."
+                QMessageBox.information(self, "Invalid Name", msg)
+            else:
+                bad_name = False
+        # if the user clicked ok
+        if ok:
+            # check if the name is already in use
+            styles = gl.get_styles(gl=False)
+            styles = list(dict.fromkeys(styles))
+            styles = [s for s in styles if s]
+            if name in styles:
+                msg = "This style already exists. Do you want to overwrite it?"
+                reply = QMessageBox.question(
+                    self, "Overwrite Style", msg, QMessageBox.Yes, QMessageBox.No
+                )
+                if reply == QMessageBox.No:
+                    return
+            # save the style
+            gl.file_manager.FileSaver(name, self.params).save()
+            # update the current style
+            self.current_style = name
+            self.styleNameLabel.setText("Current Style: " + self.current_style)
+            # clear unsaved changes
+            self.unsaved_changes = {}
+            # update the original params
+            self.original_params = {}
+            for section in self.params:
+                self.original_params[section] = {}
+                for param in self.params[section]:
+                    self.original_params[section][param] = self.params[section][param]
+        else:
+            return
+
+    def new(self):
+        # check if there are unsaved changes
+        if self.unsaved_changes:
+            msg = (
+                "You have unsaved changes. Are you sure you want to create a new style?"
+            )
+            reply = QMessageBox.question(
+                self, "Unsaved Changes", msg, QMessageBox.Yes, QMessageBox.No
+            )
+            if reply == QMessageBox.No:
+                return
+
+        # choose a style as a starting point
+        styles = gl.get_styles(gl=True)
+        styles = list(dict.fromkeys(styles))
+        styles = [s for s in styles if s]
+        style, ok = QInputDialog.getItem(
+            self,
+            "New Style",
+            "Select a style to use as a starting point",
+            styles,
+            0,
+            False,
+        )
+        if ok:
+            # load the style
+            self.params = gl.file_manager.FileLoader(style).load()
+            # update the current style
+            self.current_style = "no name"
+            self.styleNameLabel.setText("Current Style: " + self.current_style)
+            # update the figure
+            self.updateFigure()
+            # remove all tabs and recreate them to update the params
+            for i in range(self.tabWidget.count()):
+                self.tabWidget.removeTab(0)
+            self.create_tabs()
+            # update the original params
+            self.original_params = {}
+            for section in self.params:
+                self.original_params[section] = {}
+                for param in self.params[section]:
+                    self.original_params[section][param] = self.params[section][param]
+            # set unsaved changes to be the same as the original params
+            for section in self.original_params:
+                self.unsaved_changes[section] = {}
+                for param in self.original_params[section]:
+                    self.unsaved_changes[section][param] = self.original_params[
+                        section
+                    ][param]
 
     def update_params(self, section: str, params_name: str | list, value):
         if not isinstance(params_name, list):
