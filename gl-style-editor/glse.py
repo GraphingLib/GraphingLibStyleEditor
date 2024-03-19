@@ -171,7 +171,7 @@ class StyleManager(QDialog):
     def rename_style(self):
         # check if the current selection is in custom styles
         if self.current_selection not in gl.get_styles(gl=False):
-            msg = "You can only rename custom styles. If you want to rename a built-in style, you can save it as a new style under a different name."
+            msg = "You can only rename custom styles. If you want to rename a built-in style, you can duplicate it."
             QMessageBox.information(self, "Invalid Selection", msg)
             return
 
