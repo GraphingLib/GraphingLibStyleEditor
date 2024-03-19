@@ -133,10 +133,13 @@ class StyleManager(QDialog):
         self.deleteButton.clicked.connect(self.delete_style)
         self.renameButton = QPushButton("Rename", self)
         self.renameButton.clicked.connect(self.rename_style)
+        self.duplicateButton = QPushButton("Duplicate", self)
+        self.duplicateButton.clicked.connect(self.duplicate_style)
         self.defaultButton = QPushButton("Set as default", self)
         self.defaultButton.clicked.connect(self.set_default_style)
         buttonLayout.addWidget(self.deleteButton)
         buttonLayout.addWidget(self.renameButton)
+        buttonLayout.addWidget(self.duplicateButton)
         buttonLayout.addWidget(self.defaultButton)
 
         self.setLayout(layout)
@@ -145,6 +148,12 @@ class StyleManager(QDialog):
         self.current_selection = self.styleList.currentItem().text()
 
     def delete_style(self):
+        # check if the current selection is in custom styles
+        if self.current_selection not in gl.get_styles(gl=False):
+            msg = "You can only delete custom styles. This style is built-in and cannot be deleted."
+            QMessageBox.information(self, "Invalid Selection", msg)
+            return
+
         if self.current_selection:
             msg = f"Are you sure you want to delete the style {self.current_selection}?"
             reply = QMessageBox.question(
@@ -160,6 +169,12 @@ class StyleManager(QDialog):
                 self.current_selection = None
 
     def rename_style(self):
+        # check if the current selection is in custom styles
+        if self.current_selection not in gl.get_styles(gl=False):
+            msg = "You can only rename custom styles. If you want to rename a built-in style, you can save it as a new style under a different name."
+            QMessageBox.information(self, "Invalid Selection", msg)
+            return
+
         if self.current_selection:
             bad_name = True
             while bad_name:
@@ -193,9 +208,41 @@ class StyleManager(QDialog):
                 self.styleList.addItems(self.styles)
                 self.current_selection = None
 
+    def duplicate_style(self):
+        if self.current_selection:
+            bad_name = True
+            while bad_name:
+                name, ok = QInputDialog.getText(
+                    self,
+                    "Duplicate Style",
+                    "Enter a new style name:",
+                    QLineEdit.Normal,
+                    "",
+                )
+                if ok and " " in name:
+                    msg = "Style names cannot contain spaces. Please enter a new name."
+                    QMessageBox.information(self, "Invalid Name", msg)
+                elif ok and name in self.styles:
+                    msg = "This style already exists. Please enter a new name."
+                    QMessageBox.information(self, "Invalid Name", msg)
+                else:
+                    bad_name = False
+
+            if ok:
+                if name in self.styles:
+                    msg = "This style already exists. Please enter a new name."
+                    QMessageBox.information(self, "Invalid Name", msg)
+                else:
+                    params = gl.file_manager.FileLoader(self.current_selection).load()
+                    gl.file_manager.FileSaver(name, params).save()
+                    self.styleList.clear()
+                    self.styles = gl.get_styles(gl=True)
+                    self.styles = list(dict.fromkeys(self.styles))
+                    self.styles = [s for s in self.styles if s]
+                    self.styleList.addItems(self.styles)
+                    self.current_selection = None
+
     def set_default_style(self):
-        # Tell user that this will rename the selected style to "plain"
-        # and ask if they want to rename the current "plain" style to something else or delete it
         msg = (
             "Setting a new default style will rename the current default style to 'plain'.\n"
             "Do you want to rename the current 'plain' style to something else or delete it?"
@@ -210,9 +257,7 @@ class StyleManager(QDialog):
         dialog.setDefaultButton(QMessageBox.Cancel)
         reply = dialog.exec_()
 
-        print(reply)
         if reply == 0:
-            print("rename")
             dialog.close()
             style_to_make_plain = self.current_selection
             self.current_selection = "plain"
