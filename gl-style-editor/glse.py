@@ -5,7 +5,7 @@ import graphinglib as gl
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.pyplot import close
 from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QCloseEvent
+from PyQt5.QtGui import QCloseEvent, QKeySequence
 from PyQt5.QtWidgets import (
     QApplication,
     QDialog,
@@ -18,6 +18,7 @@ from PyQt5.QtWidgets import (
     QMessageBox,
     QPushButton,
     QScrollArea,
+    QShortcut,
     QSplitter,
     QTabWidget,
     QVBoxLayout,
@@ -129,25 +130,31 @@ class StyleManager(QDialog):
         layout.addLayout(buttonLayout)
 
         # Add buttons to delete, rename styles, and set a style as the default
-        self.deleteButton = QPushButton("Delete", self)
-        self.deleteButton.clicked.connect(self.delete_style)
         self.renameButton = QPushButton("Rename", self)
         self.renameButton.clicked.connect(self.rename_style)
+        self.deleteButton = QPushButton("Delete", self)
+        self.deleteButton.clicked.connect(self.delete_style)
         self.duplicateButton = QPushButton("Duplicate", self)
         self.duplicateButton.clicked.connect(self.duplicate_style)
         self.defaultButton = QPushButton("Set as default", self)
         self.defaultButton.clicked.connect(self.set_default_style)
-        buttonLayout.addWidget(self.deleteButton)
+
         buttonLayout.addWidget(self.renameButton)
+        buttonLayout.addWidget(self.deleteButton)
         buttonLayout.addWidget(self.duplicateButton)
         buttonLayout.addWidget(self.defaultButton)
 
         self.setLayout(layout)
 
+        self.shortcut_close = QShortcut(QKeySequence("Ctrl+W"), self)
+        self.shortcut_close.activated.connect(self.close)
+
     def update_selection(self):
         self.current_selection = self.styleList.currentItem().text()
 
     def delete_style(self):
+        if not self.current_selection:
+            return
         # check if the current selection is in custom styles
         if self.current_selection not in gl.get_styles(gl=False):
             msg = "You can only delete custom styles. This style is built-in and cannot be deleted."
@@ -169,38 +176,74 @@ class StyleManager(QDialog):
                 self.current_selection = None
 
     def rename_style(self):
+        if not self.current_selection:
+            return
         # check if the current selection is in custom styles
         if self.current_selection not in gl.get_styles(gl=False):
             msg = "You can only rename custom styles. If you want to rename a built-in style, you can duplicate it."
             QMessageBox.information(self, "Invalid Selection", msg)
             return
 
-        if self.current_selection:
-            bad_name = True
-            while bad_name:
-                name, ok = QInputDialog.getText(
-                    self,
-                    "Rename Style",
-                    "Enter a new style name:",
-                    QLineEdit.Normal,
-                    "",
-                )
-                if ok and " " in name:
-                    msg = "Style names cannot contain spaces. Please enter a new name."
-                    QMessageBox.information(self, "Invalid Name", msg)
-                elif ok and name in self.styles:
-                    msg = "This style already exists. Please enter a new name."
-                    QMessageBox.information(self, "Invalid Name", msg)
-                else:
-                    bad_name = False
-            if ok:
-                # get the params of the current style
+        bad_name = True
+        while bad_name:
+            name, ok = QInputDialog.getText(
+                self,
+                "Rename Style",
+                "Enter a new style name:",
+                QLineEdit.Normal,
+                "",
+            )
+            if ok and " " in name:
+                msg = "Style names cannot contain spaces. Please enter a new name."
+                QMessageBox.information(self, "Invalid Name", msg)
+            elif ok and name in self.styles:
+                msg = "This style already exists. Please enter a new name."
+                QMessageBox.information(self, "Invalid Name", msg)
+            else:
+                bad_name = False
+        if ok:
+            # get the params of the current style
+            params = gl.file_manager.FileLoader(self.current_selection).load()
+            # save the params with the new name
+            gl.file_manager.FileSaver(name, params).save()
+            # delete the old style
+            gl.file_manager.FileDeleter(self.current_selection).delete()
+            # update the list of styles
+            self.styleList.clear()
+            self.styles = gl.get_styles(gl=True)
+            self.styles = list(dict.fromkeys(self.styles))
+            self.styles = [s for s in self.styles if s]
+            self.styleList.addItems(self.styles)
+            self.current_selection = None
+
+    def duplicate_style(self):
+        if not self.current_selection:
+            return
+        bad_name = True
+        while bad_name:
+            name, ok = QInputDialog.getText(
+                self,
+                "Duplicate Style",
+                "Enter a new style name:",
+                QLineEdit.Normal,
+                "",
+            )
+            if ok and " " in name:
+                msg = "Style names cannot contain spaces. Please enter a new name."
+                QMessageBox.information(self, "Invalid Name", msg)
+            elif ok and name in self.styles:
+                msg = "This style already exists. Please enter a new name."
+                QMessageBox.information(self, "Invalid Name", msg)
+            else:
+                bad_name = False
+
+        if ok:
+            if name in self.styles:
+                msg = "This style already exists. Please enter a new name."
+                QMessageBox.information(self, "Invalid Name", msg)
+            else:
                 params = gl.file_manager.FileLoader(self.current_selection).load()
-                # save the params with the new name
                 gl.file_manager.FileSaver(name, params).save()
-                # delete the old style
-                gl.file_manager.FileDeleter(self.current_selection).delete()
-                # update the list of styles
                 self.styleList.clear()
                 self.styles = gl.get_styles(gl=True)
                 self.styles = list(dict.fromkeys(self.styles))
@@ -208,41 +251,9 @@ class StyleManager(QDialog):
                 self.styleList.addItems(self.styles)
                 self.current_selection = None
 
-    def duplicate_style(self):
-        if self.current_selection:
-            bad_name = True
-            while bad_name:
-                name, ok = QInputDialog.getText(
-                    self,
-                    "Duplicate Style",
-                    "Enter a new style name:",
-                    QLineEdit.Normal,
-                    "",
-                )
-                if ok and " " in name:
-                    msg = "Style names cannot contain spaces. Please enter a new name."
-                    QMessageBox.information(self, "Invalid Name", msg)
-                elif ok and name in self.styles:
-                    msg = "This style already exists. Please enter a new name."
-                    QMessageBox.information(self, "Invalid Name", msg)
-                else:
-                    bad_name = False
-
-            if ok:
-                if name in self.styles:
-                    msg = "This style already exists. Please enter a new name."
-                    QMessageBox.information(self, "Invalid Name", msg)
-                else:
-                    params = gl.file_manager.FileLoader(self.current_selection).load()
-                    gl.file_manager.FileSaver(name, params).save()
-                    self.styleList.clear()
-                    self.styles = gl.get_styles(gl=True)
-                    self.styles = list(dict.fromkeys(self.styles))
-                    self.styles = [s for s in self.styles if s]
-                    self.styleList.addItems(self.styles)
-                    self.current_selection = None
-
     def set_default_style(self):
+        if not self.current_selection:
+            return
         msg = (
             "Setting a new default style will rename the current default style to 'plain'.\n"
             "Do you want to rename the current 'plain' style to something else or delete it?"
@@ -332,6 +343,7 @@ class MainWindow(QMainWindow):
         self.newAction.setShortcut("Ctrl+N")
         self.openAction.setShortcut("Ctrl+O")
         self.saveAction.setShortcut("Ctrl+S")
+        self.managerAction.setShortcut("Ctrl+M")
 
         # Add a field for the figure style name
         self.upperLayout = QHBoxLayout()
