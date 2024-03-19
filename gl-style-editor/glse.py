@@ -1,3 +1,4 @@
+import re
 import sys
 
 import graphinglib as gl
@@ -7,10 +8,12 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QCloseEvent
 from PyQt5.QtWidgets import (
     QApplication,
+    QDialog,
     QHBoxLayout,
     QInputDialog,
     QLabel,
     QLineEdit,
+    QListWidget,
     QMainWindow,
     QMessageBox,
     QPushButton,
@@ -102,6 +105,148 @@ class GLCanvas(FigureCanvas):
         # self.gl_fig._prepare_figure(default_params=self.params)
 
 
+class StyleManager(QDialog):
+    def __init__(self, parent=None):
+        super(StyleManager, self).__init__(parent)
+        self.setWindowTitle("Manage Styles")
+        self.setGeometry(100, 100, 200, 200)
+        layout = QHBoxLayout()
+        # Add list of styles to select from
+        self.styles = gl.get_styles(gl=True)
+        self.styles = list(dict.fromkeys(self.styles))
+        self.styles = [s for s in self.styles if s]
+
+        self.styleList = QListWidget()
+        self.styleList.addItems(self.styles)
+        # Limit to one selection
+        self.styleList.setSelectionMode(QListWidget.SingleSelection)
+        self.current_selection = None
+        self.styleList.itemSelectionChanged.connect(self.update_selection)
+        layout.addWidget(self.styleList)
+
+        # Add vertical layout for buttons
+        buttonLayout = QVBoxLayout()
+        layout.addLayout(buttonLayout)
+
+        # Add buttons to delete, rename styles, and set a style as the default
+        self.deleteButton = QPushButton("Delete", self)
+        self.deleteButton.clicked.connect(self.delete_style)
+        self.renameButton = QPushButton("Rename", self)
+        self.renameButton.clicked.connect(self.rename_style)
+        self.defaultButton = QPushButton("Set as default", self)
+        self.defaultButton.clicked.connect(self.set_default_style)
+        buttonLayout.addWidget(self.deleteButton)
+        buttonLayout.addWidget(self.renameButton)
+        buttonLayout.addWidget(self.defaultButton)
+
+        self.setLayout(layout)
+
+    def update_selection(self):
+        self.current_selection = self.styleList.currentItem().text()
+
+    def delete_style(self):
+        if self.current_selection:
+            msg = f"Are you sure you want to delete the style {self.current_selection}?"
+            reply = QMessageBox.question(
+                self, "Delete Style", msg, QMessageBox.Yes, QMessageBox.No
+            )
+            if reply == QMessageBox.Yes:
+                gl.file_manager.FileDeleter(self.current_selection).delete()
+                self.styleList.clear()
+                self.styles = gl.get_styles(gl=True)
+                self.styles = list(dict.fromkeys(self.styles))
+                self.styles = [s for s in self.styles if s]
+                self.styleList.addItems(self.styles)
+                self.current_selection = None
+
+    def rename_style(self):
+        if self.current_selection:
+            bad_name = True
+            while bad_name:
+                name, ok = QInputDialog.getText(
+                    self,
+                    "Rename Style",
+                    "Enter a new style name:",
+                    QLineEdit.Normal,
+                    "",
+                )
+                if ok and " " in name:
+                    msg = "Style names cannot contain spaces. Please enter a new name."
+                    QMessageBox.information(self, "Invalid Name", msg)
+                elif ok and name in self.styles:
+                    msg = "This style already exists. Please enter a new name."
+                    QMessageBox.information(self, "Invalid Name", msg)
+                else:
+                    bad_name = False
+            if ok:
+                # get the params of the current style
+                params = gl.file_manager.FileLoader(self.current_selection).load()
+                # save the params with the new name
+                gl.file_manager.FileSaver(name, params).save()
+                # delete the old style
+                gl.file_manager.FileDeleter(self.current_selection).delete()
+                # update the list of styles
+                self.styleList.clear()
+                self.styles = gl.get_styles(gl=True)
+                self.styles = list(dict.fromkeys(self.styles))
+                self.styles = [s for s in self.styles if s]
+                self.styleList.addItems(self.styles)
+                self.current_selection = None
+
+    def set_default_style(self):
+        # Tell user that this will rename the selected style to "plain"
+        # and ask if they want to rename the current "plain" style to something else or delete it
+        msg = (
+            "Setting a new default style will rename the current default style to 'plain'.\n"
+            "Do you want to rename the current 'plain' style to something else or delete it?"
+        )
+        # Create a dialog with three buttons: "Rename", "Delete" and "Cancel"
+        dialog = QMessageBox(self)
+        dialog.setWindowTitle("Set Default Style")
+        dialog.setText(msg)
+        rename_button = dialog.addButton("Rename", QMessageBox.ActionRole)
+        delete_button = dialog.addButton("Delete", QMessageBox.ActionRole)
+        cancel_button = dialog.addButton(QMessageBox.Cancel)
+        dialog.setDefaultButton(QMessageBox.Cancel)
+        reply = dialog.exec_()
+
+        print(reply)
+        if reply == 0:
+            print("rename")
+            dialog.close()
+            style_to_make_plain = self.current_selection
+            self.current_selection = "plain"
+            self.rename_style()
+            self.current_selection = style_to_make_plain
+            params = gl.file_manager.FileLoader(self.current_selection).load()
+            gl.file_manager.FileSaver("plain", params).save()
+            gl.file_manager.FileDeleter(self.current_selection).delete()
+            self.styleList.clear()
+            self.styles = gl.get_styles(gl=True)
+            self.styles = list(dict.fromkeys(self.styles))
+            self.styles = [s for s in self.styles if s]
+            self.styleList.addItems(self.styles)
+            self.current_selection = None
+        elif reply == 1:
+            dialog.close()
+            # delete the current "plain" style and rename the selected style to "plain"
+            style_to_make_plain = self.current_selection
+            self.current_selection = "plain"
+            self.delete_style()
+            self.current_selection = style_to_make_plain
+            params = gl.file_manager.FileLoader(self.current_selection).load()
+            gl.file_manager.FileSaver("plain", params).save()
+            gl.file_manager.FileDeleter(self.current_selection).delete()
+            self.styleList.clear()
+            self.styles = gl.get_styles(gl=True)
+            self.styles = list(dict.fromkeys(self.styles))
+            self.styles = [s for s in self.styles if s]
+            self.styleList.addItems(self.styles)
+            self.current_selection = None
+        else:
+            return
+
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -124,20 +269,19 @@ class MainWindow(QMainWindow):
         # Add menu bar
         self.menuBar = self.menuBar()
         self.fileMenu = self.menuBar.addMenu("File")
-        self.editMenu = self.menuBar.addMenu("Edit")
-        self.viewMenu = self.menuBar.addMenu("View")
-        self.helpMenu = self.menuBar.addMenu("Help")
 
         # Add actions to the file menu
         self.newAction = self.fileMenu.addAction("New")
         self.openAction = self.fileMenu.addAction("Open")
         self.saveAction = self.fileMenu.addAction("Save")
         self.saveAsAction = self.fileMenu.addAction("Save As")
+        self.managerAction = self.fileMenu.addAction("Manage styles...")
 
         self.saveAction.triggered.connect(self.save)
         self.saveAsAction.triggered.connect(self.save_as)
         self.openAction.triggered.connect(self.load)
         self.newAction.triggered.connect(self.new)
+        self.managerAction.triggered.connect(self.manage_styles)
 
         # Connect key shortcuts to the file menu actions
         self.newAction.setShortcut("Ctrl+N")
@@ -224,7 +368,7 @@ class MainWindow(QMainWindow):
 
     def load(self):
         if self.unsaved_changes:
-            msg = "You have unsaved changes. Are you sure you want to load a new style?"
+            msg = "You have unsaved changes that will be lost. Are you sure you want to load a new style?"
             reply = QMessageBox.question(
                 self, "Unsaved Changes", msg, QMessageBox.Yes, QMessageBox.No
             )
@@ -341,9 +485,7 @@ class MainWindow(QMainWindow):
     def new(self):
         # check if there are unsaved changes
         if self.unsaved_changes:
-            msg = (
-                "You have unsaved changes. Are you sure you want to create a new style?"
-            )
+            msg = "You have unsaved changes that will be lost. Are you sure you want to create a new style?"
             reply = QMessageBox.question(
                 self, "Unsaved Changes", msg, QMessageBox.Yes, QMessageBox.No
             )
@@ -387,6 +529,36 @@ class MainWindow(QMainWindow):
                     self.unsaved_changes[section][param] = self.original_params[
                         section
                     ][param]
+
+    def manage_styles(self):
+        # check if there are unsaved changes
+        if self.unsaved_changes:
+            msg = "You have unsaved changes which will be lost. Are you sure you want to manage styles?"
+            reply = QMessageBox.question(
+                self, "Unsaved Changes", msg, QMessageBox.Yes, QMessageBox.No
+            )
+            if reply == QMessageBox.No:
+                return
+        styleManager = StyleManager(self)
+        styleManager.exec_()
+        # reload the current style
+        self.params = gl.file_manager.FileLoader(self.current_style).load()
+        self.updateFigure()
+        # remove all tabs and recreate them to update the params
+        for i in range(self.tabWidget.count()):
+            self.tabWidget.removeTab(0)
+        self.create_tabs()
+        # update the original params
+        self.original_params = {}
+        for section in self.params:
+            self.original_params[section] = {}
+            for param in self.params[section]:
+                self.original_params[section][param] = self.params[section][param]
+        # set unsaved changes to be nothing
+        self.unsaved_changes = {}
+
+        # update the style name label
+        self.styleNameLabel.setText("Current Style: " + self.current_style)
 
     def update_params(self, section: str, params_name: str | list, value):
         if not isinstance(params_name, list):
