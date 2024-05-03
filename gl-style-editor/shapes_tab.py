@@ -84,12 +84,14 @@ def create_circle_tab(window):
         window,
         "Color",
         param_ids=["Circle", ["color"]],
-        activated_on_init=(False if window.params["Circle"]["color"] == "" else True),
+        activated_on_init=(
+            False if window.params["Circle"]["fill_color"] == "" else True
+        ),
     )
     color_picker_widget = Activator(
         window,
         widget=color,
-        param_ids=["Circle", "color"],
+        param_ids=["Circle", "fill_color"],
         check_label="Use color cycle",
         param_if_checked=None,
     )
@@ -143,15 +145,15 @@ def create_rectangle_tab(window):
     color = ColorPickerWidget(
         window,
         "Color",
-        param_ids=["Rectangle", ["color"]],
+        param_ids=["Rectangle", ["fill_color"]],
         activated_on_init=(
-            False if window.params["Rectangle"]["color"] == "" else True
+            False if window.params["Rectangle"]["fill_color"] == "" else True
         ),
     )
     color_picker_widget = Activator(
         window,
         widget=color,
-        param_ids=["Rectangle", "color"],
+        param_ids=["Rectangle", "fill_color"],
         check_label="Use color cycle",
         param_if_checked=None,
     )

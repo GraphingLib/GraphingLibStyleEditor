@@ -86,8 +86,8 @@ class ColorPickerWidget(QWidget):
 
         self.copyButton = QPushButton("Copy")
         self.pasteButton = QPushButton("Paste")
-        self.copyButton.setFixedWidth(65)  # Shorter copy button
-        self.pasteButton.setFixedWidth(65)  # Shorter paste button
+        self.copyButton.setFixedWidth(75)  # Shorter copy button
+        self.pasteButton.setFixedWidth(75)  # Shorter paste button
         self.copyButton.clicked.connect(
             lambda: QApplication.clipboard().setText(self.colorEdit.text())  # type: ignore
         )
