@@ -24,6 +24,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+from qt_material import apply_stylesheet
 
 from .figure_tab import create_figure_tab
 from .fits_tab import create_fits_tab
@@ -307,6 +308,11 @@ class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("GraphingLib Style Editor")
+        screen = self.screen()
+        screen_size = screen.size()
+        width = screen_size.width()
+        height = screen_size.height()
+        self.resize(int(width * 0.8), int(height * 0.6))
 
         # Updatable parameters
         self.current_style = "plain"
@@ -370,6 +376,7 @@ class MainWindow(QMainWindow):
         self.canvas = GLCanvas(width=5, height=4, params=self.params)
         self.splitter.addWidget(self.tabWidget)
         self.splitter.addWidget(self.canvas)
+        self.splitter.setSizes([int(width * 0.3), int(width * 0.3)])
 
         # Set the splitter as the main layout widget
         self.mainLayout.addWidget(self.splitter)
@@ -676,5 +683,6 @@ class MainWindow(QMainWindow):
 def run():
     app = QApplication(sys.argv)
     mainWin = MainWindow()
+    apply_stylesheet(app, theme="dark_blue.xml", css_file="gl-style-editor/custom.css")
     mainWin.show()
     sys.exit(app.exec_())
