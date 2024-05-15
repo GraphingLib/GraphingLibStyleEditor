@@ -46,12 +46,12 @@ class ColorButton(QPushButton):
 
     def onColorPicker(self):
         dlg = QColorDialog(self)
+        dlg.setStyleSheet("background-color: #31363b;")
         if self._color:
             dlg.setCurrentColor(QColor(self._color))
-
-        # Calculate the position to move the dialog next to the button
-        button_pos = self.mapToGlobal(self.pos())
-        dlg.move(button_pos.x(), button_pos.y())
+            self.setStyleSheet(
+                f"QPushButton {{ background-color: {self._color}; color: white; }}"
+            )
 
         if dlg.exec_():
             self.setColor(dlg.currentColor().name())
@@ -80,7 +80,7 @@ class ColorPickerWidget(QWidget):
         self.label = QLabel(label)
         self.colorButton = ColorButton(color=initial_color)
         self.colorEdit = QLineEdit(initial_color)
-        self.colorEdit.setFixedWidth(60)  # Half the length
+        self.colorEdit.setFixedWidth(80)  # Half the length
         self.colorButton.colorChanged.connect(self.onColorChanged)
         self.colorEdit.textChanged.connect(self.onColorEditTextChanged)
 
