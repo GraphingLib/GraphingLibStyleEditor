@@ -1,4 +1,3 @@
-import re
 import sys
 
 import graphinglib as gl
@@ -112,23 +111,20 @@ class StyleManager(QDialog):
         super(StyleManager, self).__init__(parent)
         self.setWindowTitle("Manage Styles")
         self.setGeometry(100, 100, 200, 200)
-        layout = QHBoxLayout()
+
+        # Add label for default style
+        self.default_style_label = QLabel(self)
+        self.default_style_label.setText(f"Default Style: {gl.get_default_style()}")
+
         # Add list of styles to select from
         self.styles = gl.get_styles(gl=True)
         self.styles = list(dict.fromkeys(self.styles))
         self.styles = [s for s in self.styles if s]
-
         self.styleList = QListWidget()
         self.styleList.addItems(self.styles)
-        # Limit to one selection
         self.styleList.setSelectionMode(QListWidget.SingleSelection)
         self.current_selection = None
         self.styleList.itemSelectionChanged.connect(self.update_selection)
-        layout.addWidget(self.styleList)
-
-        # Add vertical layout for buttons
-        buttonLayout = QVBoxLayout()
-        layout.addLayout(buttonLayout)
 
         # Add buttons to delete, rename styles, and set a style as the default
         self.renameButton = QPushButton("Rename", self)
@@ -140,12 +136,19 @@ class StyleManager(QDialog):
         self.defaultButton = QPushButton("Set as default", self)
         self.defaultButton.clicked.connect(self.set_default_style)
 
+        # Add layouts
+        buttonLayout = QVBoxLayout()
         buttonLayout.addWidget(self.renameButton)
         buttonLayout.addWidget(self.deleteButton)
         buttonLayout.addWidget(self.duplicateButton)
         buttonLayout.addWidget(self.defaultButton)
-
-        self.setLayout(layout)
+        main_h_layout = QHBoxLayout()
+        main_h_layout.addWidget(self.styleList)
+        main_h_layout.addLayout(buttonLayout)
+        v_layout_1 = QVBoxLayout()
+        v_layout_1.addWidget(self.default_style_label)
+        v_layout_1.addLayout(main_h_layout)
+        self.setLayout(v_layout_1)
 
         self.shortcut_close = QShortcut(QKeySequence("Ctrl+W"), self)
         self.shortcut_close.activated.connect(self.close)
@@ -168,6 +171,11 @@ class StyleManager(QDialog):
                 self, "Delete Style", msg, QMessageBox.Yes, QMessageBox.No
             )
             if reply == QMessageBox.Yes:
+                if gl.get_default_style() == self.current_selection:
+                    gl.set_default_style("plain")
+                    self.default_style_label.setText(
+                        f"Default Style: {gl.get_default_style()}"
+                    )
                 gl.file_manager.FileDeleter(self.current_selection).delete()
                 self.styleList.clear()
                 self.styles = gl.get_styles(gl=True)
@@ -180,8 +188,10 @@ class StyleManager(QDialog):
         if not self.current_selection:
             return
         # check if the current selection is in custom styles
-        if self.current_selection not in gl.get_styles(gl=False):
-            msg = "You can only rename custom styles. If you want to rename a built-in style, you can duplicate it."
+        if self.current_selection not in gl.get_styles(
+            gl=False, customs=True, matplotlib=False
+        ):
+            msg = "You can only rename custom styles. If you want to rename a built-in style, you must duplicate it first."
             QMessageBox.information(self, "Invalid Selection", msg)
             return
 
@@ -197,7 +207,7 @@ class StyleManager(QDialog):
             if ok and " " in name:
                 msg = "Style names cannot contain spaces. Please enter a new name."
                 QMessageBox.information(self, "Invalid Name", msg)
-            elif ok and name in self.styles:
+            elif ok and name in gl.get_styles(gl=False, customs=True, matplotlib=False):
                 msg = "This style already exists. Please enter a new name."
                 QMessageBox.information(self, "Invalid Name", msg)
             else:
@@ -216,6 +226,8 @@ class StyleManager(QDialog):
             self.styles = [s for s in self.styles if s]
             self.styleList.addItems(self.styles)
             self.current_selection = None
+            gl.set_default_style(name)
+            self.default_style_label.setText(f"Default Style: {gl.get_default_style()}")
 
     def duplicate_style(self):
         if not self.current_selection:
@@ -232,76 +244,29 @@ class StyleManager(QDialog):
             if ok and " " in name:
                 msg = "Style names cannot contain spaces. Please enter a new name."
                 QMessageBox.information(self, "Invalid Name", msg)
-            elif ok and name in self.styles:
+            elif ok and name in gl.get_styles(gl=False, customs=True, matplotlib=False):
                 msg = "This style already exists. Please enter a new name."
                 QMessageBox.information(self, "Invalid Name", msg)
             else:
                 bad_name = False
 
         if ok:
-            if name in self.styles:
-                msg = "This style already exists. Please enter a new name."
-                QMessageBox.information(self, "Invalid Name", msg)
-            else:
-                params = gl.file_manager.FileLoader(self.current_selection).load()
-                gl.file_manager.FileSaver(name, params).save()
-                self.styleList.clear()
-                self.styles = gl.get_styles(gl=True)
-                self.styles = list(dict.fromkeys(self.styles))
-                self.styles = [s for s in self.styles if s]
-                self.styleList.addItems(self.styles)
-                self.current_selection = None
+            params = gl.file_manager.FileLoader(self.current_selection).load()
+            gl.file_manager.FileSaver(name, params).save()
+            self.styleList.clear()
+            self.styles = gl.get_styles(gl=True)
+            self.styles = list(dict.fromkeys(self.styles))
+            self.styles = [s for s in self.styles if s]
+            self.styleList.addItems(self.styles)
+            self.current_selection = None
 
     def set_default_style(self):
         if not self.current_selection:
             return
-        msg = (
-            "Setting a new default style will rename the current default style to 'plain'.\n"
-            "Do you want to rename the current 'plain' style to something else or delete it?"
-        )
-        # Create a dialog with three buttons: "Rename", "Delete" and "Cancel"
-        dialog = QMessageBox(self)
-        dialog.setWindowTitle("Set Default Style")
-        dialog.setText(msg)
-        rename_button = dialog.addButton("Rename", QMessageBox.ActionRole)
-        delete_button = dialog.addButton("Delete", QMessageBox.ActionRole)
-        cancel_button = dialog.addButton(QMessageBox.Cancel)
-        dialog.setDefaultButton(QMessageBox.Cancel)
-        reply = dialog.exec_()
 
-        if reply == 0:
-            dialog.close()
-            style_to_make_plain = self.current_selection
-            self.current_selection = "plain"
-            self.rename_style()
-            self.current_selection = style_to_make_plain
-            params = gl.file_manager.FileLoader(self.current_selection).load()
-            gl.file_manager.FileSaver("plain", params).save()
-            gl.file_manager.FileDeleter(self.current_selection).delete()
-            self.styleList.clear()
-            self.styles = gl.get_styles(gl=True)
-            self.styles = list(dict.fromkeys(self.styles))
-            self.styles = [s for s in self.styles if s]
-            self.styleList.addItems(self.styles)
-            self.current_selection = None
-        elif reply == 1:
-            dialog.close()
-            # delete the current "plain" style and rename the selected style to "plain"
-            style_to_make_plain = self.current_selection
-            self.current_selection = "plain"
-            self.delete_style()
-            self.current_selection = style_to_make_plain
-            params = gl.file_manager.FileLoader(self.current_selection).load()
-            gl.file_manager.FileSaver("plain", params).save()
-            gl.file_manager.FileDeleter(self.current_selection).delete()
-            self.styleList.clear()
-            self.styles = gl.get_styles(gl=True)
-            self.styles = list(dict.fromkeys(self.styles))
-            self.styles = [s for s in self.styles if s]
-            self.styleList.addItems(self.styles)
-            self.current_selection = None
-        else:
-            return
+        gl.set_default_style(self.current_selection)
+
+        self.default_style_label.setText(f"Default Style: {gl.get_default_style()}")
 
 
 class MainWindow(QMainWindow):
@@ -315,7 +280,7 @@ class MainWindow(QMainWindow):
         self.resize(int(width * 0.8), int(height * 0.6))
 
         # Updatable parameters
-        self.current_style = "plain"
+        self.current_style = gl.get_default_style()
         self.unsaved_changes = {}
         self.params = gl.file_manager.FileLoader(self.current_style).load()
         self.original_params = {}
@@ -606,6 +571,8 @@ class MainWindow(QMainWindow):
         styleManager = StyleManager(self)
         styleManager.exec_()
         # reload the current style
+        if self.current_style not in gl.get_styles(gl=True, customs=True):
+            self.current_style = gl.get_default_style()
         self.params = gl.file_manager.FileLoader(self.current_style).load()
         self.updateFigure()
         # remove all tabs and recreate them to update the params
