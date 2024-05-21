@@ -2,7 +2,7 @@ from typing import Optional
 
 from matplotlib.colors import is_color_like, to_hex
 from PyQt5.QtCore import QSortFilterProxyModel, QStringListModel, Qt, pyqtSignal
-from PyQt5.QtGui import QColor
+from PyQt5.QtGui import QColor, QFont, QIcon, QPainter, QPixmap
 from PyQt5.QtWidgets import (
     QApplication,
     QCheckBox,
@@ -12,6 +12,8 @@ from PyQt5.QtWidgets import (
     QLabel,
     QLineEdit,
     QListView,
+    QListWidget,
+    QListWidgetItem,
     QMainWindow,
     QPushButton,
     QSlider,
@@ -364,3 +366,87 @@ class ListOptions(QWidget):
         if selectedIndexes:
             return self.model.data(selectedIndexes[0], Qt.DisplayRole)  # type: ignore
         return None
+
+
+class IndicatorListWidget(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        self.list_widget = QListWidget()
+        self.list_widget.setSelectionMode(QListWidget.SingleSelection)
+        self.layout = QVBoxLayout()
+        self.layout.addWidget(self.list_widget)
+        self.setLayout(self.layout)
+
+        # Add items to the list with indicators
+
+        # Sort items by their indicator color
+        self.sort_items()
+
+    def create_indicator_icon(self, is_gl, has_gl_twin=False):
+        # Create a QPixmap object to draw on
+        pixmap = QPixmap(40, 20)  # Increase width to accommodate two icons
+        pixmap.fill(Qt.transparent)  # Ensure the background is transparent
+
+        painter = QPainter(pixmap)
+        color = QColor("blue") if is_gl else QColor("green")
+        painter.setBrush(color)
+        painter.drawEllipse(3, 3, 14, 14)  # Draw a filled circle
+
+        # Draw the letter '2' if has_gl_twin is True
+        if has_gl_twin:
+            painter.setFont(QFont("Arial", 20))
+            painter.setPen(QColor("grey"))
+            painter.drawText(25, 17, "2")
+
+        painter.end()
+
+        return QIcon(pixmap)
+
+    def _add_item(self, text, is_gl, has_gl_twin=False):
+        # Check that not both is_gl and has_gl_twin are True
+        if is_gl and has_gl_twin:
+            raise ValueError(
+                "Both is_gl and has_gl_twin cannot be True. has_gl_twin is reserved for custom styles that share a name with a built-in style."
+            )
+        # Add item to the list widget with an indicator icon
+        item = QListWidgetItem(text)
+        item.setData(Qt.UserRole, (is_gl, has_gl_twin))
+        icon = self.create_indicator_icon(is_gl, has_gl_twin)
+        item.setIcon(icon)
+        self.list_widget.addItem(item)
+
+    def add_item(self, text, is_gl, has_gl_twin=False):
+        # add and then sort items
+        self._add_item(text, is_gl, has_gl_twin)
+        self.sort_items()
+
+    def add_items(self, gl_items, custom_items):
+        # Add items to the list with indicators
+        for item in custom_items:
+            if item is None or item == "":
+                continue
+            if item in gl_items:
+                self._add_item(item, is_gl=False, has_gl_twin=True)
+            else:
+                self._add_item(item, is_gl=False, has_gl_twin=False)
+        for item in gl_items:
+            if item not in custom_items:
+                self._add_item(item, is_gl=True, has_gl_twin=False)
+
+        # Sort items by their indicator color
+        self.sort_items()
+
+    def sort_items(self):
+        # Sort items by their indicator state
+        items = []
+        for index in range(self.list_widget.count()):
+            item = self.list_widget.item(index)
+            items.append((item.data(Qt.UserRole), item.text()))
+
+        # Sort items by their indicator state (reversed), and then by their text
+        items.sort(key=lambda x: (x[0][0], x[1]))
+
+        self.list_widget.clear()
+        for state, text in items:
+            self._add_item(text, *state)

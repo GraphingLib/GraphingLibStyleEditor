@@ -31,6 +31,7 @@ from .other_gl_tab import create_other_gl_tab
 from .plotting_1d_tab import create_plotting_1d_tab
 from .plotting_2d_tab import create_plotting_2d_tab
 from .shapes_tab import create_shapes_tab
+from .widgets import IndicatorListWidget
 
 
 class GLCanvas(FigureCanvas):
@@ -110,21 +111,31 @@ class StyleManager(QDialog):
     def __init__(self, parent=None):
         super(StyleManager, self).__init__(parent)
         self.setWindowTitle("Manage Styles")
-        self.setGeometry(100, 100, 200, 200)
+        self.setGeometry(100, 100, 460, 200)
 
         # Add label for default style
         self.default_style_label = QLabel(self)
         self.default_style_label.setText(f"Default Style: {gl.get_default_style()}")
 
         # Add list of styles to select from
-        self.styles = gl.get_styles(gl=True)
-        self.styles = list(dict.fromkeys(self.styles))
-        self.styles = [s for s in self.styles if s]
-        self.styleList = QListWidget()
-        self.styleList.addItems(self.styles)
-        self.styleList.setSelectionMode(QListWidget.SingleSelection)
+        self.styles = gl.get_styles(
+            gl=True, customs=True, matplotlib=False, as_dict=True
+        )
+        self.styleList = IndicatorListWidget()
+        self.styleList.add_items(
+            gl_items=self.styles["gl"], custom_items=self.styles["customs"]
+        )
+        # self.styleList.setSelectionMode(QListWidget.SingleSelection)
         self.current_selection = None
-        self.styleList.itemSelectionChanged.connect(self.update_selection)
+        self.styleList.list_widget.itemSelectionChanged.connect(self.update_selection)
+
+        # Explanation label
+        self.explanationLabel = QLabel(self)
+        self.explanationLabel.setText(
+            "Green: Custom style\nBlue: Built-in style\n2: This is a custom style that overrides a built-in style of the same name."
+        )
+        self.explanationLabel.setWordWrap(True)
+        self.explanationLabel.setStyleSheet("color: #bfbfbf")
 
         # Add buttons to delete, rename styles, and set a style as the default
         self.renameButton = QPushButton("Rename", self)
@@ -148,13 +159,14 @@ class StyleManager(QDialog):
         v_layout_1 = QVBoxLayout()
         v_layout_1.addWidget(self.default_style_label)
         v_layout_1.addLayout(main_h_layout)
+        v_layout_1.addWidget(self.explanationLabel)
         self.setLayout(v_layout_1)
 
         self.shortcut_close = QShortcut(QKeySequence("Ctrl+W"), self)
         self.shortcut_close.activated.connect(self.close)
 
     def update_selection(self):
-        self.current_selection = self.styleList.currentItem().text()
+        self.current_selection = self.styleList.list_widget.currentItem().text()
 
     def delete_style(self):
         if not self.current_selection:
@@ -177,11 +189,13 @@ class StyleManager(QDialog):
                         f"Default Style: {gl.get_default_style()}"
                     )
                 gl.file_manager.FileDeleter(self.current_selection).delete()
-                self.styleList.clear()
-                self.styles = gl.get_styles(gl=True)
-                self.styles = list(dict.fromkeys(self.styles))
-                self.styles = [s for s in self.styles if s]
-                self.styleList.addItems(self.styles)
+                self.styleList.list_widget.clear()
+                self.styles = gl.get_styles(
+                    gl=True, customs=True, matplotlib=False, as_dict=True
+                )
+                self.styleList.add_items(
+                    gl_items=self.styles["gl"], custom_items=self.styles["customs"]
+                )
                 self.current_selection = None
 
     def rename_style(self):
@@ -220,11 +234,13 @@ class StyleManager(QDialog):
             # delete the old style
             gl.file_manager.FileDeleter(self.current_selection).delete()
             # update the list of styles
-            self.styleList.clear()
-            self.styles = gl.get_styles(gl=True)
-            self.styles = list(dict.fromkeys(self.styles))
-            self.styles = [s for s in self.styles if s]
-            self.styleList.addItems(self.styles)
+            self.styleList.list_widget.clear()
+            self.styles = gl.get_styles(
+                gl=True, customs=True, matplotlib=False, as_dict=True
+            )
+            self.styleList.add_items(
+                gl_items=self.styles["gl"], custom_items=self.styles["customs"]
+            )
             self.current_selection = None
             gl.set_default_style(name)
             self.default_style_label.setText(f"Default Style: {gl.get_default_style()}")
@@ -253,11 +269,13 @@ class StyleManager(QDialog):
         if ok:
             params = gl.file_manager.FileLoader(self.current_selection).load()
             gl.file_manager.FileSaver(name, params).save()
-            self.styleList.clear()
-            self.styles = gl.get_styles(gl=True)
-            self.styles = list(dict.fromkeys(self.styles))
-            self.styles = [s for s in self.styles if s]
-            self.styleList.addItems(self.styles)
+            self.styleList.list_widget.clear()
+            self.styles = gl.get_styles(
+                gl=True, customs=True, matplotlib=False, as_dict=True
+            )
+            self.styleList.add_items(
+                gl_items=self.styles["gl"], custom_items=self.styles["customs"]
+            )
             self.current_selection = None
 
     def set_default_style(self):
