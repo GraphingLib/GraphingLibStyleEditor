@@ -49,6 +49,8 @@ def create_plotting_1d_tab(window: QMainWindow):
     layout.addWidget(tabWidget)
     window.plotting1DTab.setLayout(layout)
 
+    return tabWidget
+
 
 def create_curve_tab(window: QMainWindow):
     # Create a layout for the curve sub-tab

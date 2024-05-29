@@ -1,5 +1,6 @@
 *.py
 !gl-style-editor/*.py
+!gl-style-editor/figures/*.py
 
 **/__pycache__
 

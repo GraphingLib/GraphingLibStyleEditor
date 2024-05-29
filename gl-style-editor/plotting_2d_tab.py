@@ -61,6 +61,8 @@ def create_plotting_2d_tab(window: QMainWindow):
     layout.addWidget(tabWidget)
     window.plotting2DTab.setLayout(layout)
 
+    return tabWidget
+
 
 def create_contour_tab(window: QMainWindow):
     # Create a layout for the contour tab
