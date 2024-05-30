@@ -1,3 +1,4 @@
+import os
 import sys
 
 import graphinglib as gl
@@ -7,7 +8,9 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QCloseEvent, QKeySequence
 from PyQt5.QtWidgets import (
     QApplication,
+    QCheckBox,
     QDialog,
+    QFileDialog,
     QHBoxLayout,
     QInputDialog,
     QLabel,
@@ -35,76 +38,165 @@ from .widgets import IndicatorListWidget
 
 
 class GLCanvas(FigureCanvas):
-    def __init__(self, params: dict, width=5, height=4):
-        self.params = params
-        self.gl_fig = gl.Figure(size=(width, height), figure_style="dark")
-        self.compute_initial_figure()
-
-        self.axes = self.gl_fig._axes
-        self.fig = self.gl_fig._figure
+    def __init__(self, fig):
+        self.fig = fig
         super(GLCanvas, self).__init__(self.fig)
 
-    def compute_initial_figure(self):
-        curve = gl.Curve([0, 1, 2, 3, 4], [10, 1, 20, 3, 40])
-        # curve.add_errorbars(y_error=2)
-        curve2 = gl.Curve([0, 1, 2, 3, 4], [11, 2, 21, 4, 41]) + 1
-        curve3 = gl.Curve([0, 1, 2, 3, 4], [12, 3, 22, 5, 42]) + 2
-        self.gl_fig.add_elements(curve, curve2, curve3)
-        self.gl_fig._prepare_figure(default_params=self.params)
-        # contour = gl.Contour.from_function(
-        #     lambda x, y: np.sin(x) + np.cos(y), (-10, 10), (-10, 10)
-        # )
-        # self.gl_fig.add_elements(contour)
-        # circle = gl.Circle(0, 0, 5)
-        # rect = gl.Rectangle(0, 0, 5, 5)
-        # self.gl_fig.add_elements(circle, rect)
-        # self.gl_fig._prepare_figure(default_params=self.params)
-        # color = self.params["Circle"]["color"]
-        # heatmap = gl.Heatmap.from_function(
-        #     lambda x, y: np.sin(x) + np.cos(y - 1),
-        #     (0, 10),
-        #     (0, 10),
-        # )
-        # self.gl_fig.add_elements(heatmap)
-        # self.gl_fig._prepare_figure(default_params=self.params)
-        # x_grid, y_grid = np.meshgrid(np.linspace(0, 11, 30), np.linspace(0, 11, 30))
-        # u, v = (np.cos(x_grid * 0.2), np.sin(y_grid * 0.3))
 
-        # stream = gl.Stream(x_grid, y_grid, u, v)
-        # point = gl.Point(5, 5)
-        # text = gl.Text(7, 7, "Hello World!")
-        # self.gl_fig.add_elements(stream, point, text)
-        # self.gl_fig._prepare_figure(default_params=self.params)
-        # data = [
-        #     [5, 223.9369, 0.0323, 0.0532, 0.1764],
-        #     [10, 223.9367, 0.0324, 0.0533, 0.1765],
-        #     [15, 223.9367, 0.0325, 0.0534, 0.1764],
-        #     [20, 223.9387, 0.0326, 0.0535, 0.1763],
-        #     [25, 223.9385, 0.0327, 0.0536, 0.1761],
-        # ]
-        # columns = [
-        #     "Time (s)",
-        #     "Voltage (V)",
-        #     "Current 1 (A)",
-        #     "Current 2 (A)",
-        #     "Current 3 (A)",
-        # ]
-        # rows = ["Series 1", "Series 2", "Series 3", "Series 4", "Series 5"]
-        # colors = ["#bfbfbf"] * 5
-        # table = gl.Table(
-        #     cell_text=data,
-        #     col_labels=columns,
-        #     row_labels=rows,
-        #     row_colors=colors,
-        #     col_colors=colors,
-        #     location="center",
-        # )
-        # self.gl_fig.add_elements(table)
-        # self.gl_fig._prepare_figure(default_params=self.params)
-        # hlines = gl.Hlines(y=[1, 2, 3], x_min=0, x_max=10)
-        # vlines = gl.Vlines(x=[1, 2, 3], y_min=0, y_max=10)
-        # self.gl_fig.add_elements(hlines, vlines)
-        # self.gl_fig._prepare_figure(default_params=self.params)
+class FigureManager(QWidget):
+    def __init__(self, params: dict, which_figure: str = "curve"):
+        super().__init__()
+        self.layout = QVBoxLayout()
+        self.button = QPushButton("Load Figure from file")
+        self.button.clicked.connect(self.load_python_file)
+        # Create list of example figures to choose from
+        self.horiz1_layout = QHBoxLayout()
+        self.exampleFigures = QListWidget()
+        self.example_figs_dict = {
+            os.path.splitext(f)[0]: f
+            for f in os.listdir(os.path.join(os.path.dirname(__file__), "figures"))
+        }
+        self.exampleFigures.addItems(self.example_figs_dict.keys())
+        self.exampleFigures.setSelectionMode(QListWidget.SingleSelection)
+        self.exampleFigures.itemSelectionChanged.connect(self.choose_builtin_figure)
+        self.exampleFigures.setFixedWidth(200)
+        self.exampleFigures.setFixedHeight(100)
+        # Add auto switch checkbox
+        self.autoSwitchCheckbox = QCheckBox("Auto Switch")
+        self.autoSwitchCheckbox.setChecked(True)
+        self.auto_switch_is_on = True
+        self.autoSwitchCheckbox.stateChanged.connect(self.toggle_auto_switch)
+        self.horiz1_layout.addWidget(self.autoSwitchCheckbox)
+        self.horiz1_layout.addWidget(self.exampleFigures)
+        self.layout.addLayout(self.horiz1_layout)
+        self.layout.addWidget(self.button)
+        self.setLayout(self.layout)
+        self.which_figure = which_figure
+        self.params = params
+        self.chosen = None
+        self.canvas = None
+        # Check if figure is a path or just name
+        if not self.which_figure.endswith(".py"):
+            figures = os.listdir(os.path.join(os.path.dirname(__file__), "figures"))
+            if self.which_figure + ".py" in figures:
+                self.which_figure = os.path.join(
+                    os.path.dirname(__file__), "figures", self.which_figure + ".py"
+                )
+            else:
+                raise FileNotFoundError(
+                    f"Figure {self.which_figure} not found in figures directory"
+                )
+        self.execute_python_file(self.which_figure)
+
+    def load_python_file(self):
+        filepath, _ = QFileDialog.getOpenFileName(
+            self, "Open Python file", "", "Python Files (*.py)"
+        )
+        if filepath:
+            self.chosen = None
+            self.which_figure = filepath
+            # turn off auto switch
+            self.autoSwitchCheckbox.setChecked(False)
+            self.auto_switch_is_on = False
+            self.execute_python_file(filepath)
+
+    def choose_builtin_figure(self):
+        self.chosen = None
+        chosen_fig = self.exampleFigures.currentItem().text()
+        self.which_figure = os.path.join(
+            os.path.dirname(__file__), "figures", self.example_figs_dict[chosen_fig]
+        )
+
+        self.execute_python_file(
+            os.path.join(
+                os.path.dirname(__file__), "figures", self.example_figs_dict[chosen_fig]
+            )
+        )
+
+    def execute_python_file(self, filepath):
+        # Clear the canvas widget
+        for i in reversed(range(self.layout.count())):
+            widgetToRemove = self.layout.itemAt(i).widget()
+            if widgetToRemove is self.canvas and self.canvas is not None:
+                self.layout.removeWidget(widgetToRemove)
+                widgetToRemove.setParent(None)
+        close("all")
+
+        original_show = gl.Figure.show
+        original_save = gl.Figure.save
+        original_multi_show = gl.MultiFigure.show
+        original_multi_save = gl.MultiFigure.save
+        gl.Figure.show = self.dummy_show
+        gl.Figure.save = self.dummy_save
+        gl.MultiFigure.show = self.dummy_show
+        gl.MultiFigure.save = self.dummy_save
+
+        # Execute the script
+        namespace = {"gl": gl, "__builtins__": __builtins__}
+        with open(filepath) as file:
+            code = compile(file.read(), filepath, "exec")
+            exec(code, namespace, namespace)
+
+        gl.Figure.show = original_show
+        gl.Figure.save = original_save
+        gl.MultiFigure.show = original_multi_show
+        gl.MultiFigure.save = original_multi_save
+        # Check for figures in the namespace and display them
+        figures = {}
+        for name, var in namespace.items():
+            if isinstance(var, gl.Figure) or isinstance(var, gl.MultiFigure):
+                figures[name] = var
+
+        # Popup to ask user which figure to display
+        if self.chosen is None:
+            if len(figures) > 1:
+                self.chosen = self.choose_figure_from_file(figures.keys())
+            else:
+                self.chosen = list(figures.keys())[0]
+
+        if self.chosen is not None:
+            fig = figures[self.chosen]
+            if isinstance(fig, gl.MultiFigure):
+                fig._prepare_multi_figure()
+            elif isinstance(fig, gl.Figure):
+                fig.figure_style = "plain"
+                fig._prepare_figure(default_params=self.params)
+            self.display_figure(fig._figure)
+
+    def display_figure(self, fig):
+        self.canvas = GLCanvas(fig)
+        # add widget to layout in position 1 (after the button)
+        self.layout.insertWidget(0, self.canvas)
+        # self.layout.addWidget(self.canvas)
+        # canvas.draw()
+
+    def choose_figure_from_file(self, figures):
+        chosen, ok = QInputDialog.getItem(
+            self, "Choose Figure", "Select a figure to display", figures, 0, False
+        )
+        if ok:
+            return chosen
+        return None
+
+    def update(self, params):
+        self.params = params
+        self.execute_python_file(self.which_figure)
+
+    def toggle_auto_switch(self):
+        self.auto_switch_is_on = self.autoSwitchCheckbox.isChecked()
+
+    def tab_changed_to(self, tab_name):
+        tab_name = tab_name.lower()
+        if tab_name in self.example_figs_dict.keys():
+            self.exampleFigures.setCurrentRow(
+                list(self.example_figs_dict.keys()).index(tab_name)
+            )
+
+    def dummy_show(*args, **kwargs):
+        pass
+
+    def dummy_save(*args, **kwargs):
+        pass
 
 
 class StyleManager(QDialog):
@@ -356,7 +448,7 @@ class MainWindow(QMainWindow):
 
         # Create and add the tab widget and canvas
         self.tabWidget = QTabWidget()
-        self.canvas = GLCanvas(width=5, height=4, params=self.params)
+        self.canvas = FigureManager(self.params, which_figure="curve")
         self.splitter.addWidget(self.tabWidget)
         self.splitter.addWidget(self.canvas)
         self.splitter.setSizes([int(width * 0.3), int(width * 0.3)])
@@ -381,15 +473,20 @@ class MainWindow(QMainWindow):
         self.figureTabScrollArea.setWidget(self.figureTab)
         self.tabWidget.addTab(self.figureTabScrollArea, "Figure")
 
+        # Add tab changed event to update the canvas
+        self.tabWidget.currentChanged.connect(self.tab_changed)
+
         # 1D Plotting tab with nested tabs
         self.plotting1DTab = QWidget()
         self.tabWidget.addTab(self.plotting1DTab, "1D Plotting")
-        create_plotting_1d_tab(self)
+        self.tab_widget_1d = create_plotting_1d_tab(self)
+        self.tab_widget_1d.currentChanged.connect(self.sub_tab_changed)
 
         # 2D Plotting tab with nested tabs
         self.plotting2DTab = QWidget()
         self.tabWidget.addTab(self.plotting2DTab, "2D Plotting")
-        create_plotting_2d_tab(self)
+        self.tab_widget_2d = create_plotting_2d_tab(self)
+        self.tab_widget_2d.currentChanged.connect(self.sub_tab_changed)
 
         # Fits tab with nested tabs
         self.fitsTab = QWidget()
@@ -407,11 +504,8 @@ class MainWindow(QMainWindow):
         create_other_gl_tab(self)
 
     def updateFigure(self):
-        # self.canvas.deleteLater()
-        close()
-        canvas = GLCanvas(width=5, height=4, params=self.params)
-        self.splitter.replaceWidget(1, canvas)
-        self.canvas = canvas
+        # Update the figure after changing parameters
+        self.canvas.update(self.params)
 
     def load(self):
         if self.unsaved_changes:
@@ -652,6 +746,79 @@ class MainWindow(QMainWindow):
                 for param in self.unsaved_changes[section]:
                     msg += f"{param}: {self.unsaved_changes[section][param]}\n"
         QMessageBox.information(self, "Unsaved Changes", msg)
+
+    def tab_changed(self, index):
+        if not self.canvas.auto_switch_is_on:
+            return
+        # get name of current tab
+        current_tab = self.tabWidget.tabText(self.tabWidget.currentIndex())
+        # get current sub tab if it exists
+        try:
+            current_sub_tab = (
+                self.tabWidget.currentWidget()
+                .layout()
+                .itemAt(0)
+                .widget()
+                .currentIndex()
+            )
+        except:
+            current_sub_tab = None
+        if current_tab is not None:
+            try:
+                # Get name of current sub tab
+                current_sub_tab = (
+                    self.tabWidget.currentWidget()
+                    .layout()
+                    .itemAt(0)
+                    .widget()
+                    .tabText(
+                        self.tabWidget.currentWidget()
+                        .layout()
+                        .itemAt(0)
+                        .widget()
+                        .currentIndex()
+                    )
+                )
+            except:
+                current_sub_tab = None
+            if current_sub_tab is not None:
+                self.canvas.tab_changed_to(current_sub_tab)
+
+    def sub_tab_changed(self, index):
+        if not self.canvas.auto_switch_is_on:
+            return
+        # get name of current tab
+        current_tab = self.tabWidget.tabText(self.tabWidget.currentIndex())
+        # get current sub tab if it exists
+        try:
+            current_sub_tab = (
+                self.tabWidget.currentWidget()
+                .layout()
+                .itemAt(0)
+                .widget()
+                .currentIndex()
+            )
+        except:
+            current_sub_tab = None
+        if current_tab is not None:
+            # Get name of current sub tab
+            try:
+                current_sub_tab = (
+                    self.tabWidget.currentWidget()
+                    .layout()
+                    .itemAt(0)
+                    .widget()
+                    .tabText(
+                        self.tabWidget.currentWidget()
+                        .layout()
+                        .itemAt(0)
+                        .widget()
+                        .currentIndex()
+                    )
+                )
+            except:
+                current_sub_tab = None
+            self.canvas.tab_changed_to(current_sub_tab)
 
     def closeEvent(self, a0: QCloseEvent | None) -> None:
         # Check if there are unsaved changes

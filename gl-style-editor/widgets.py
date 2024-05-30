@@ -103,23 +103,37 @@ class ColorPickerWidget(QWidget):
         self.layout.addWidget(self.colorEdit)
         self.layout.addWidget(self.copyButton)
         self.layout.addWidget(self.pasteButton)
+        self.updating = False
 
     def onColorChanged(self, color):
-        if self.colorEdit.text() == "" or (
-            color != self.colorEdit.text() and color != to_hex(self.colorEdit.text())
-        ):
-            self.colorEdit.setText(color)
-            self.the_window.update_params(self.param_section, self.param_labels, color)
+        if not self.updating:
+            self.updating = True
+            if self.colorEdit.text() == "" or (
+                color != self.colorEdit.text()
+                and color != to_hex(self.colorEdit.text())
+            ):
+                self.colorEdit.setText(color)
+                self.the_window.update_params(
+                    self.param_section, self.param_labels, color
+                )
+            self.updating = False
 
     def onColorEditTextChanged(self, text):
-        if QColor(text).isValid():
-            self.colorButton.setColor(text)
-            self.the_window.update_params(self.param_section, self.param_labels, text)
-        elif is_color_like(text):
-            # get the hex value of the color using matplotlib
-            text = to_hex(text)
-            self.colorButton.setColor(text)
-            self.the_window.update_params(self.param_section, self.param_labels, text)
+        if not self.updating:
+            self.updating = True
+            if QColor(text).isValid():
+                self.colorButton.setColor(text)
+                self.the_window.update_params(
+                    self.param_section, self.param_labels, text
+                )
+            elif is_color_like(text):
+                # get the hex value of the color using matplotlib
+                text = to_hex(text)
+                self.colorButton.setColor(text)
+                self.the_window.update_params(
+                    self.param_section, self.param_labels, text
+                )
+            self.updating = False
 
     def getValue(self):
         return self.colorButton._color
