@@ -491,17 +491,20 @@ class MainWindow(QMainWindow):
         # Fits tab with nested tabs
         self.fitsTab = QWidget()
         self.tabWidget.addTab(self.fitsTab, "Fits")
-        create_fits_tab(self)
+        self.tab_widget_fits = create_fits_tab(self)
+        self.tab_widget_fits.currentChanged.connect(self.sub_tab_changed)
 
         # Shapes tab with nested tabs
         self.shapesTab = QWidget()
         self.tabWidget.addTab(self.shapesTab, "Shapes")
-        create_shapes_tab(self)
+        self.tab_widget_shapes = create_shapes_tab(self)
+        self.tab_widget_shapes.currentChanged.connect(self.sub_tab_changed)
 
         # Other GL Objects tab with nested tabs
         self.otherGLTab = QWidget()
         self.tabWidget.addTab(self.otherGLTab, "Other GL Objects")
-        create_other_gl_tab(self)
+        self.tab_widget_other_gl = create_other_gl_tab(self)
+        self.tab_widget_other_gl.currentChanged.connect(self.sub_tab_changed)
 
     def updateFigure(self):
         # Update the figure after changing parameters

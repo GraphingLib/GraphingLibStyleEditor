@@ -45,6 +45,8 @@ def create_shapes_tab(window):
     layout.addWidget(tabWidget)
     window.shapesTab.setLayout(layout)
 
+    return tabWidget
+
 
 def create_circle_tab(window):
     layout = QVBoxLayout()
@@ -182,13 +184,6 @@ def create_arrow_tab(window):
         initial_color=window.params["Arrow"]["_color"],
         activated_on_init=(False if window.params["Arrow"]["_color"] == "" else True),
     )
-    # color_picker_widget = Activator(
-    #     window,
-    #     widget=color,
-    #     param_ids=["Arrow", "_color"],
-    #     check_label="Use color cycle",
-    #     param_if_checked=None,
-    # )
     layout.addWidget(color)
 
     # create head_size slider

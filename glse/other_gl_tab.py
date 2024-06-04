@@ -58,6 +58,8 @@ def create_other_gl_tab(window):
     layout.addWidget(tabWidget)
     window.otherGLTab.setLayout(layout)
 
+    return tabWidget
+
 
 def create_point_tab(window):
     # create layout

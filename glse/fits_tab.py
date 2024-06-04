@@ -22,3 +22,5 @@ def create_fits_tab(window):
 
     layout.addWidget(tabWidget)
     window.fitsTab.setLayout(layout)
+
+    return tabWidget
