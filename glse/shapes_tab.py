@@ -1,7 +1,6 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QScrollArea, QTabWidget, QVBoxLayout, QWidget
-
-from .widgets import Activator, CheckBox, ColorPickerWidget, Dropdown, Slider
+from widgets import Activator, CheckBox, ColorPickerWidget, Dropdown, Slider
 
 
 def create_shapes_tab(window):

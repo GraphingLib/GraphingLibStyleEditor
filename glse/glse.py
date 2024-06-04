@@ -2,8 +2,13 @@ import os
 import sys
 
 import graphinglib as gl
+from figure_tab import create_figure_tab
+from fits_tab import create_fits_tab
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.pyplot import close
+from other_gl_tab import create_other_gl_tab
+from plotting_1d_tab import create_plotting_1d_tab
+from plotting_2d_tab import create_plotting_2d_tab
 from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QCloseEvent, QKeySequence
 from PyQt5.QtWidgets import (
@@ -27,14 +32,8 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 from qt_material import apply_stylesheet
-
-from .figure_tab import create_figure_tab
-from .fits_tab import create_fits_tab
-from .other_gl_tab import create_other_gl_tab
-from .plotting_1d_tab import create_plotting_1d_tab
-from .plotting_2d_tab import create_plotting_2d_tab
-from .shapes_tab import create_shapes_tab
-from .widgets import IndicatorListWidget
+from shapes_tab import create_shapes_tab
+from widgets import IndicatorListWidget
 
 
 class GLCanvas(FigureCanvas):

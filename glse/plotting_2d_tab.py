@@ -9,8 +9,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-
-from .widgets import (
+from widgets import (
     Activator,
     CheckBox,
     ColorPickerWidget,
