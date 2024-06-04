@@ -1,10 +1,10 @@
 *.py
-!gl-style-editor/*.py
-!gl-style-editor/figures/*.py
+!glse/*.py
+!glse/figures/*.py
 
 **/__pycache__
 
-gl-style-editor/.vscode
+glse/.vscode
 
 .vscode
 .venv

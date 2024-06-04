@@ -1,14 +1,14 @@
 [tool.poetry]
-name = "gl-style-editor"
+name = "glse"
 version = "0.0.1"
-description = "A GUI editor for GL style files"
+description = "A GUI editor for GraphingLib style files"
 license = "MIT"
 authors = [
     "Gustave Coulombe <magikgus@gmail.com>",
     "Yannick Lapointe <yannicklapointe77@gmail.com>",
 ]
 readme = "README.md"
-packages = [{include = "glse.py", from = "gl-style-editor"}]
+packages = [{ include = "glse.py", from = "glse" }]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
@@ -16,7 +16,7 @@ pyqt5 = "^5.15.10"
 requests = "^2.31.0"
 setuptools-scm = "^8.0.4"
 qt-material = "^2.14"
-graphinglib = {git = "https://github.com/GraphingLib/GraphingLib.git"}
+graphinglib = { git = "https://github.com/GraphingLib/GraphingLib.git" }
 
 
 [build-system]
