@@ -1,5 +1,3 @@
-from venv import create
-
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QScrollArea, QTabWidget, QVBoxLayout, QWidget
 
