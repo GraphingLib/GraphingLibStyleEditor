@@ -7,7 +7,8 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from widgets import Activator, ColorPickerWidget, Dropdown, Slider
+
+from glse.widgets import Activator, ColorPickerWidget, Dropdown, Slider
 
 
 def create_other_gl_tab(window):

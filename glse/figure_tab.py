@@ -1,6 +1,7 @@
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QCheckBox, QFrame, QLabel, QMainWindow, QVBoxLayout
-from widgets import CheckBox, ColorPickerWidget, Dropdown, Slider
+
+from glse.widgets import CheckBox, ColorPickerWidget, Dropdown, Slider
 
 
 def create_figure_tab(window: QMainWindow):

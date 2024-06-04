@@ -8,7 +8,8 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from widgets import Activator, CheckBox, ColorPickerWidget, Dropdown, Slider
+
+from glse.widgets import Activator, CheckBox, ColorPickerWidget, Dropdown, Slider
 
 
 def create_plotting_1d_tab(window: QMainWindow):
