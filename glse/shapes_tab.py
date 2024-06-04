@@ -1,3 +1,5 @@
+from venv import create
+
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import QScrollArea, QTabWidget, QVBoxLayout, QWidget
 
@@ -38,9 +40,15 @@ def create_shapes_tab(window):
     arrowTabScrollArea.setWidget(arrowTab)
     tabWidget.addTab(arrowTabScrollArea, "Arrow")
 
-    # Example stubs for each sub-tab
+    # create line tab
+    lineTabLayout = create_line_tab(window)
     lineTab = QWidget()
-    tabWidget.addTab(lineTab, "Line")
+    lineTab.setLayout(lineTabLayout)
+    lineTabScrollArea = QScrollArea()
+    lineTabScrollArea.setWidgetResizable(True)
+    lineTabScrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+    lineTabScrollArea.setWidget(lineTab)
+    tabWidget.addTab(lineTabScrollArea, "Line")
 
     layout.addWidget(tabWidget)
     window.shapesTab.setLayout(layout)
@@ -191,15 +199,58 @@ def create_arrow_tab(window):
         window,
         "Head Size",
         0,
-        5,
+        50,
         1,
         ["Arrow", "_head_size"],
-        conversion_factor=1,
+        conversion_factor=10,
     )
     layout.addWidget(head_size)
 
     # create width slider
-    width = Slider(window, "Width", 0, 10, 1, ["Arrow", "_width"], conversion_factor=1)
+    width = Slider(
+        window, "Width", 0, 100, 1, ["Arrow", "_width"], conversion_factor=10
+    )
     layout.addWidget(width)
+
+    return layout
+
+
+def create_line_tab(window):
+    layout = QVBoxLayout()
+    layout.setAlignment(Qt.AlignTop)
+
+    # create line color picker
+    color = ColorPickerWidget(
+        window,
+        "Color",
+        param_ids=["Line", ["_color"]],
+        initial_color=window.params["Line"]["_color"],
+        activated_on_init=(False if window.params["Line"]["_color"] == "" else True),
+    )
+    layout.addWidget(color)
+
+    # create line width slider
+    width = Slider(
+        window,
+        "Width",
+        0,
+        100,
+        1,
+        ["Line", "_width"],
+        conversion_factor=10,
+    )
+    layout.addWidget(width)
+
+    # create line capwidth slider
+    capwidth = Slider(
+        window,
+        "Cap Width",
+        0,
+        100,
+        1,
+        ["Line", "_cap_width"],
+        conversion_factor=10,
+    )
+    layout.addWidget(capwidth)
 
     return layout
