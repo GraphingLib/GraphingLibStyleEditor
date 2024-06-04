@@ -28,9 +28,17 @@ def create_shapes_tab(window):
     rectangleTabScrollArea.setWidget(rectangleTab)
     tabWidget.addTab(rectangleTabScrollArea, "Rectangle")
 
-    # Example stubs for each sub-tab
+    # create arrow tab
+    arrowTabLayout = create_arrow_tab(window)
     arrowTab = QWidget()
-    tabWidget.addTab(arrowTab, "Arrow")
+    arrowTab.setLayout(arrowTabLayout)
+    arrowTabScrollArea = QScrollArea()
+    arrowTabScrollArea.setWidgetResizable(True)
+    arrowTabScrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+    arrowTabScrollArea.setWidget(arrowTab)
+    tabWidget.addTab(arrowTabScrollArea, "Arrow")
+
+    # Example stubs for each sub-tab
     lineTab = QWidget()
     tabWidget.addTab(lineTab, "Line")
 
@@ -158,5 +166,45 @@ def create_rectangle_tab(window):
         param_if_checked=None,
     )
     layout.addWidget(color_picker_widget)
+
+    return layout
+
+
+def create_arrow_tab(window):
+    layout = QVBoxLayout()
+    layout.setAlignment(Qt.AlignTop)
+
+    # create color picker
+    color = ColorPickerWidget(
+        window,
+        "Color",
+        param_ids=["Arrow", ["_color"]],
+        initial_color=window.params["Arrow"]["_color"],
+        activated_on_init=(False if window.params["Arrow"]["_color"] == "" else True),
+    )
+    # color_picker_widget = Activator(
+    #     window,
+    #     widget=color,
+    #     param_ids=["Arrow", "_color"],
+    #     check_label="Use color cycle",
+    #     param_if_checked=None,
+    # )
+    layout.addWidget(color)
+
+    # create head_size slider
+    head_size = Slider(
+        window,
+        "Head Size",
+        0,
+        5,
+        1,
+        ["Arrow", "_head_size"],
+        conversion_factor=1,
+    )
+    layout.addWidget(head_size)
+
+    # create width slider
+    width = Slider(window, "Width", 0, 10, 1, ["Arrow", "_width"], conversion_factor=1)
+    layout.addWidget(width)
 
     return layout
