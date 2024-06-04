@@ -543,6 +543,8 @@ class MainWindow(QMainWindow):
             except:
                 current_sub_tab = None
             # remove all tabs and recreate them to update the params
+            auto_switch_original = self.canvas.auto_switch_is_on
+            self.canvas.auto_switch_is_on = False
             for i in range(self.tabWidget.count()):
                 self.tabWidget.removeTab(0)
             self.create_tabs()
@@ -552,6 +554,8 @@ class MainWindow(QMainWindow):
                 self.tabWidget.currentWidget().layout().itemAt(
                     0
                 ).widget().setCurrentIndex(current_sub_tab)
+            self.canvas.auto_switch_is_on = auto_switch_original
+
             # update the original params
             self.original_params = {}
             for section in self.params:
@@ -688,9 +692,12 @@ class MainWindow(QMainWindow):
         self.params = gl.file_manager.FileLoader(self.current_style).load()
         self.updateFigure()
         # remove all tabs and recreate them to update the params
+        auto_switch_original = self.canvas.auto_switch_is_on
+        self.canvas.auto_switch_is_on = False
         for i in range(self.tabWidget.count()):
             self.tabWidget.removeTab(0)
         self.create_tabs()
+        self.canvas.auto_switch_is_on = auto_switch_original
         # update the original params
         self.original_params = {}
         for section in self.params:
