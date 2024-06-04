@@ -74,7 +74,7 @@ def create_contour_tab(window: QMainWindow):
         window,
         "Colormap",
         list(colormaps),
-        ["Contour", "color_map"],
+        ["Contour", "_color_map"],
     )
     layout.addWidget(colormap)
 
@@ -85,7 +85,7 @@ def create_contour_tab(window: QMainWindow):
         1,
         50,
         2,
-        ["Contour", "number_of_levels"],
+        ["Contour", "_number_of_levels"],
         conversion_factor=1,
     )
     layout.addWidget(levels)
@@ -97,7 +97,7 @@ def create_contour_tab(window: QMainWindow):
         0,
         100,
         5,
-        ["Contour", "alpha"],
+        ["Contour", "_alpha"],
         conversion_factor=100,
     )
     layout.addWidget(alpha)
@@ -106,7 +106,7 @@ def create_contour_tab(window: QMainWindow):
     show_colorbar = CheckBox(
         window,
         "Show Colorbar",
-        ["Contour", "show_color_bar"],
+        ["Contour", "_show_color_bar"],
     )
     layout.addWidget(show_colorbar)
 
@@ -114,7 +114,7 @@ def create_contour_tab(window: QMainWindow):
     filled = CheckBox(
         window,
         "Filled",
-        ["Contour", "filled"],
+        ["Contour", "_filled"],
     )
     layout.addWidget(filled)
 
@@ -131,7 +131,7 @@ def create_heatmap_tab(window: QMainWindow):
         window,
         "Colormap",
         list(colormaps),
-        ["Heatmap", "color_map"],
+        ["Heatmap", "_color_map"],
     )
     layout.addWidget(colormap)
 
@@ -141,7 +141,7 @@ def create_heatmap_tab(window: QMainWindow):
         label="Origin position",
         items=["Upper left", "Lower left"],
         param_values=["upper", "lower"],
-        param_ids=["Heatmap", "origin_position"],
+        param_ids=["Heatmap", "_origin_position"],
     )
     layout.addWidget(origin)
 
@@ -151,7 +151,7 @@ def create_heatmap_tab(window: QMainWindow):
         "Aspect ratio",
         ["Fit data to axes", "Fit axes to data (equal)"],
         ["auto", "equal"],
-        ["Heatmap", "aspect_ratio"],
+        ["Heatmap", "_aspect_ratio"],
     )
     layout.addWidget(aspect_ratio)
 
@@ -170,7 +170,7 @@ def create_stream_tab(window: QMainWindow):
         0,
         10,
         1,
-        ["Stream", "line_width"],
+        ["Stream", "_line_width"],
         conversion_factor=1,
     )
     layout.addWidget(line_width)
@@ -182,7 +182,7 @@ def create_stream_tab(window: QMainWindow):
         0,
         10,
         1,
-        ["Stream", "arrow_size"],
+        ["Stream", "_arrow_size"],
         conversion_factor=1,
     )
     layout.addWidget(arrow_size)
@@ -192,27 +192,27 @@ def create_stream_tab(window: QMainWindow):
         window,
         "Colormap",
         list(colormaps),
-        ["Stream", "color_map"],
+        ["Stream", "_color_map"],
     )
     layout.addWidget(colormap)
 
     # create color button with activator
     initial_color = (
         "#000000"
-        if window.params["Stream"]["color"] is None
-        else window.params["Stream"]["color"]
+        if window.params["Stream"]["_color"] is None
+        else window.params["Stream"]["_color"]
     )
     color = ColorPickerWidget(
         window,
         "Color",
         initial_color=initial_color,
         param_ids=["Stream", ["color"]],
-        activated_on_init=window.params["Stream"]["color"] is not None,
+        activated_on_init=window.params["Stream"]["_color"] is not None,
     )
     activator = Activator(
         window,
         color,
-        param_ids=["Stream", "color"],
+        param_ids=["Stream", "_color"],
         check_label="Use color cycle",
         param_if_checked=None,
     )

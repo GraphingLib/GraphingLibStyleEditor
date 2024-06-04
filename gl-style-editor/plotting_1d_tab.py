@@ -74,7 +74,7 @@ def create_curve_tab(window: QMainWindow):
         0,
         20,
         1,
-        ["Curve", "line_width"],
+        ["Curve", "_line_width"],
     )
     layout.addWidget(line_width_slider)
 
@@ -84,27 +84,27 @@ def create_curve_tab(window: QMainWindow):
         "Line Style:",
         ["Solid", "Dashed", "Dotted", "Dash-Dot"],
         ["-", "--", ":", "-."],
-        ["Curve", "line_style"],
+        ["Curve", "_line_style"],
     )
     layout.addWidget(line_style_dropdown)
 
     # create fill under color picker and "same as curve" checkbox
     initial_fill_under_color = (
         "#000000"
-        if window.params["Curve"]["fill_under_color"] == "same as curve"
-        else window.params["Curve"]["fill_under_color"]
+        if window.params["Curve"]["_fill_under_color"] == "same as curve"
+        else window.params["Curve"]["_fill_under_color"]
     )
     fill_under_color = ColorPickerWidget(
         window,
         "Fill Under",
         initial_fill_under_color,
-        param_ids=["Curve", ["fill_under_color"]],
+        param_ids=["Curve", ["_fill_under_color"]],
         activated_on_init=False,
     )
     fill_under_color_checkbox = Activator(
         window,
         fill_under_color,
-        param_ids=["Curve", "fill_under_color"],
+        param_ids=["Curve", "_fill_under_color"],
         check_label="Same as curve",
         param_if_checked="same as curve",
     )
@@ -151,26 +151,26 @@ def create_curve_tab(window: QMainWindow):
     layout.addWidget(errorbar_line)
 
     # create errorbar cap width slider
-    cap_width_slider = Slider(window, "Cap Width:", 0, 20, 1, ["Curve", "cap_width"])
+    cap_width_slider = Slider(window, "Cap Width:", 0, 20, 1, ["Curve", "_cap_width"])
     layout.addWidget(cap_width_slider)
 
     # create errorbar color button and "same as curve" checkbox
     errorbars_initial_color = (
         "#000000"
-        if window.params["Curve"]["errorbars_color"] == "same as curve"
-        else window.params["Curve"]["errorbars_color"]
+        if window.params["Curve"]["_errorbars_color"] == "same as curve"
+        else window.params["Curve"]["_errorbars_color"]
     )
     errorbars_color = ColorPickerWidget(
         window,
         "Color",
         errorbars_initial_color,
-        ["Curve", ["errorbars_color"]],
-        activated_on_init=window.params["Curve"]["errorbars_color"] != "same as curve",
+        ["Curve", ["_errorbars_color"]],
+        activated_on_init=window.params["Curve"]["_errorbars_color"] != "same as curve",
     )
     errorbars_color_checkbox = Activator(
         window,
         errorbars_color,
-        param_ids=["Curve", "errorbars_color"],
+        param_ids=["Curve", "_errorbars_color"],
         check_label="Same as curve",
         param_if_checked="same as curve",
     )
@@ -183,12 +183,12 @@ def create_curve_tab(window: QMainWindow):
         0,
         20,
         1,
-        ["Curve", "errorbars_line_width"],
+        ["Curve", "_errorbars_line_width"],
     )
     errorbars_line_width_checkbox = Activator(
         window,
         errorbars_line_width_slider,
-        param_ids=["Curve", "errorbars_line_width"],
+        param_ids=["Curve", "_errorbars_line_width"],
         check_label="Same as curve",
         param_if_checked="same as curve",
     )
@@ -201,12 +201,12 @@ def create_curve_tab(window: QMainWindow):
         0,
         20,
         1,
-        ["Curve", "cap_thickness"],
+        ["Curve", "_cap_thickness"],
     )
     cap_thickness_checkbox = Activator(
         window,
         cap_thickness_slider,
-        ["Curve", "cap_thickness"],
+        ["Curve", "_cap_thickness"],
         check_label="Same as curve",
         param_if_checked="same as curve",
     )
@@ -231,23 +231,23 @@ def create_scatter_tab(window: QMainWindow):
     marker_edge_color = ColorPickerWidget(
         window,
         "Marker Edge Color:",
-        window.params["Scatter"]["edge_color"],
-        ["Scatter", ["edge_color"]],
+        window.params["Scatter"]["_edge_color"],
+        ["Scatter", ["_edge_color"]],
         activated_on_init=(
-            False if window.params["Scatter"]["edge_color"] == "none" else True
+            False if window.params["Scatter"]["_edge_color"] == "none" else True
         ),
     )
     marker_edge_color_checkbox = Activator(
         window,
         widget=marker_edge_color,
-        param_ids=["Scatter", "edge_color"],
+        param_ids=["Scatter", "_edge_color"],
         check_label="None",
         param_if_checked="none",
     )
     layout.addWidget(marker_edge_color_checkbox)
 
     marker_size_slider = Slider(
-        window, "Marker Size:", 0, 200, 10, ["Scatter", "marker_size"]
+        window, "Marker Size:", 0, 200, 10, ["Scatter", "_marker_size"]
     )
     layout.addWidget(marker_size_slider)
 
@@ -265,7 +265,7 @@ def create_scatter_tab(window: QMainWindow):
             "Thin Diamond",
         ],
         ["o", "^", "v", "<", ">", "s", "x", "d"],
-        ["Scatter", "marker_style"],
+        ["Scatter", "_marker_style"],
     )
     layout.addWidget(marker_style_dropdown)
 
@@ -280,35 +280,35 @@ def create_scatter_tab(window: QMainWindow):
 
     errorbars_intitial_color = (
         "#000000"
-        if "same as" in window.params["Scatter"]["errorbars_color"]
-        else window.params["Scatter"]["errorbars_color"]
+        if "same as" in window.params["Scatter"]["_errorbars_color"]
+        else window.params["Scatter"]["_errorbars_color"]
     )
     errorbars_color = ColorPickerWidget(
         window,
         "Color:",
         errorbars_intitial_color,
-        ["Scatter", ["errorbars_color"]],
-        "same as" not in window.params["Scatter"]["errorbars_color"],
+        ["Scatter", ["_errorbars_color"]],
+        "same as" not in window.params["Scatter"]["_errorbars_color"],
     )
     errorbars_color_checkbox = Activator(
         window,
         widget=errorbars_color,
-        param_ids=["Scatter", "errorbars_color"],
+        param_ids=["Scatter", "_errorbars_color"],
         check_label="Same as scatter",
         param_if_checked="same as scatter",
     )
     layout.addWidget(errorbars_color_checkbox)
 
-    cap_width_slider = Slider(window, "Cap Width:", 0, 20, 1, ["Scatter", "cap_width"])
+    cap_width_slider = Slider(window, "Cap Width:", 0, 20, 1, ["Scatter", "_cap_width"])
     layout.addWidget(cap_width_slider)
 
     errorbars_line_width = Slider(
-        window, "Line Width:", 0, 20, 1, ["Scatter", "errorbars_line_width"]
+        window, "Line Width:", 0, 20, 1, ["Scatter", "_errorbars_line_width"]
     )
     layout.addWidget(errorbars_line_width)
 
     errorbars_cap_thickness = Slider(
-        window, "Cap Thickness:", 0, 20, 1, ["Scatter", "cap_thickness"]
+        window, "Cap Thickness:", 0, 20, 1, ["Scatter", "_cap_thickness"]
     )
     layout.addWidget(errorbars_cap_thickness)
 
@@ -338,33 +338,33 @@ def create_histogram_tab(window: QMainWindow):
         "Histogram Type:",
         ["Step-Filled"],
         ["stepfilled"],
-        ["Histogram", "hist_type"],
+        ["Histogram", "_hist_type"],
     )
     layout.addWidget(hist_type)
 
-    normalize = CheckBox(window, "Normalized", ["Histogram", "normalize"])
+    normalize = CheckBox(window, "Normalized", ["Histogram", "_normalize"])
     layout.addWidget(normalize)
 
     face_color = ColorPickerWidget(
         window,
         "Face Color:",
-        window.params["Histogram"]["face_color"],
-        ["Histogram", ["face_color"]],
+        window.params["Histogram"]["_face_color"],
+        ["Histogram", ["_face_color"]],
     )
     layout.addWidget(face_color)
 
-    alpha = Slider(window, "Opacity:", 0, 100, 5, ["Histogram", "alpha"], 100)
+    alpha = Slider(window, "Opacity:", 0, 100, 5, ["Histogram", "_alpha"], 100)
     layout.addWidget(alpha)
 
     edge_color = ColorPickerWidget(
         window,
         "Edge Color:",
-        window.params["Histogram"]["edge_color"],
-        ["Histogram", ["edge_color"]],
+        window.params["Histogram"]["_edge_color"],
+        ["Histogram", ["_edge_color"]],
     )
     layout.addWidget(edge_color)
 
-    line_width = Slider(window, "Line Width:", 0, 20, 1, ["Histogram", "line_width"])
+    line_width = Slider(window, "Line Width:", 0, 20, 1, ["Histogram", "_line_width"])
     layout.addWidget(line_width)
 
     pdf_label = QLabel("Probability Density Function (PDF):")
@@ -376,36 +376,36 @@ def create_histogram_tab(window: QMainWindow):
     pdf_line.setFrameShadow(QFrame.Sunken)
     layout.addWidget(pdf_line)
 
-    show_params = CheckBox(window, "Show Parameters", ["Histogram", "show_params"])
+    show_params = CheckBox(window, "Show Parameters", ["Histogram", "_show_params"])
     layout.addWidget(show_params)
 
-    pdf_show_mean = CheckBox(window, "Show Mean", ["Histogram", "pdf_show_mean"])
+    pdf_show_mean = CheckBox(window, "Show Mean", ["Histogram", "_pdf_show_mean"])
     layout.addWidget(pdf_show_mean)
 
-    pdf_show_std = CheckBox(window, "Show STD", ["Histogram", "pdf_show_std"])
+    pdf_show_std = CheckBox(window, "Show STD", ["Histogram", "_pdf_show_std"])
     layout.addWidget(pdf_show_std)
 
     pdf_curve_color = ColorPickerWidget(
         window,
         "Curve:",
-        window.params["Histogram"]["pdf_curve_color"],
-        ["Histogram", ["pdf_curve_color"]],
+        window.params["Histogram"]["_pdf_curve_color"],
+        ["Histogram", ["_pdf_curve_color"]],
     )
     layout.addWidget(pdf_curve_color)
 
     pdf_mean_color = ColorPickerWidget(
         window,
         "Mean Line:",
-        window.params["Histogram"]["pdf_mean_color"],
-        ["Histogram", ["pdf_mean_color"]],
+        window.params["Histogram"]["_pdf_mean_color"],
+        ["Histogram", ["_pdf_mean_color"]],
     )
     layout.addWidget(pdf_mean_color)
 
     pdf_std_color = ColorPickerWidget(
         window,
         "STD Lines:",
-        window.params["Histogram"]["pdf_std_color"],
-        ["Histogram", ["pdf_std_color"]],
+        window.params["Histogram"]["_pdf_std_color"],
+        ["Histogram", ["_pdf_std_color"]],
     )
     layout.addWidget(pdf_std_color)
 
