@@ -10,7 +10,7 @@ from PyQt5.QtWidgets import (
     QWidget,
 )
 
-from glse.widgets import (
+from .widgets import (
     Activator,
     CheckBox,
     ColorPickerWidget,

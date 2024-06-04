@@ -8,7 +8,6 @@ authors = [
     "Yannick Lapointe <yannicklapointe77@gmail.com>",
 ]
 readme = "README.md"
-packages = [{ include = "glse.py", from = "glse" }]
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
