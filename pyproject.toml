@@ -18,6 +18,8 @@ setuptools-scm = "^8.0.4"
 qt-material = "^2.14"
 graphinglib = { git = "https://github.com/GraphingLib/GraphingLib.git" }
 
+[tool.poetry.scripts]
+glse = "glse.cli:main"
 
 [build-system]
 requires = ["poetry-core"]
