@@ -43,7 +43,7 @@ def create_circle_tab(window):
     layout.setAlignment(Qt.AlignTop)
 
     # create fill checkbox
-    fill = CheckBox(window, "Fill", ["Circle", "fill"])
+    fill = CheckBox(window, "Fill", ["Circle", "_fill"])
     layout.addWidget(fill)
 
     # create fill_alpha slider
@@ -53,7 +53,7 @@ def create_circle_tab(window):
         0,
         100,
         5,
-        ["Circle", "fill_alpha"],
+        ["Circle", "_fill_alpha"],
         conversion_factor=100,
     )
     layout.addWidget(fill_alpha)
@@ -65,7 +65,7 @@ def create_circle_tab(window):
         0,
         10,
         1,
-        ["Circle", "line_width"],
+        ["Circle", "_line_width"],
         conversion_factor=1,
     )
     layout.addWidget(line_width)
@@ -76,22 +76,22 @@ def create_circle_tab(window):
         "Line Style",
         ["Solid", "Dashed", "Dotted", "Dash-Dot", "None"],
         ["-", "--", ":", "-.", "None"],
-        ["Circle", "line_style"],
+        ["Circle", "_line_style"],
     )
     layout.addWidget(line_style)
 
     color = ColorPickerWidget(
         window,
         "Color",
-        param_ids=["Circle", ["color"]],
+        param_ids=["Circle", ["_color"]],
         activated_on_init=(
-            False if window.params["Circle"]["fill_color"] == "" else True
+            False if window.params["Circle"]["_fill_color"] == "" else True
         ),
     )
     color_picker_widget = Activator(
         window,
         widget=color,
-        param_ids=["Circle", "fill_color"],
+        param_ids=["Circle", "_fill_color"],
         check_label="Use color cycle",
         param_if_checked=None,
     )
@@ -105,7 +105,7 @@ def create_rectangle_tab(window):
     layout.setAlignment(Qt.AlignTop)
 
     # create fill checkbox
-    fill = CheckBox(window, "Fill", ["Rectangle", "fill"])
+    fill = CheckBox(window, "Fill", ["Rectangle", "_fill"])
     layout.addWidget(fill)
 
     # create fill_alpha slider
@@ -115,7 +115,7 @@ def create_rectangle_tab(window):
         0,
         100,
         5,
-        ["Rectangle", "fill_alpha"],
+        ["Rectangle", "_fill_alpha"],
         conversion_factor=100,
     )
     layout.addWidget(fill_alpha)
@@ -127,7 +127,7 @@ def create_rectangle_tab(window):
         0,
         10,
         1,
-        ["Rectangle", "line_width"],
+        ["Rectangle", "_line_width"],
         conversion_factor=1,
     )
     layout.addWidget(line_width)
@@ -138,22 +138,22 @@ def create_rectangle_tab(window):
         "Line Style",
         ["Solid", "Dashed", "Dotted", "Dash-Dot", "None"],
         ["-", "--", ":", "-.", "None"],
-        ["Rectangle", "line_style"],
+        ["Rectangle", "_line_style"],
     )
     layout.addWidget(line_style)
 
     color = ColorPickerWidget(
         window,
         "Color",
-        param_ids=["Rectangle", ["fill_color"]],
+        param_ids=["Rectangle", ["_fill_color"]],
         activated_on_init=(
-            False if window.params["Rectangle"]["fill_color"] == "" else True
+            False if window.params["Rectangle"]["_fill_color"] == "" else True
         ),
     )
     color_picker_widget = Activator(
         window,
         widget=color,
-        param_ids=["Rectangle", "fill_color"],
+        param_ids=["Rectangle", "_fill_color"],
         check_label="Use color cycle",
         param_if_checked=None,
     )

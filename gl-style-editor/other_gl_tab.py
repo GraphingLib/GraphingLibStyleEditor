@@ -66,20 +66,20 @@ def create_point_tab(window):
 
     initial_color = (
         "#000000"
-        if window.params["Point"]["color"] == "none"
-        else window.params["Point"]["color"]
+        if window.params["Point"]["_color"] == "none"
+        else window.params["Point"]["_color"]
     )
     colorPicker = ColorPickerWidget(
         window=window,
         label="Fill color",
         initial_color=initial_color,
-        param_ids=["Point", ["color"]],
+        param_ids=["Point", ["_color"]],
         activated_on_init=(initial_color == "none"),
     )
     color_activator = Activator(
         window=window,
         widget=colorPicker,
-        param_ids=["Point", "color"],
+        param_ids=["Point", "_color"],
         check_label="No fill",
         param_if_checked="none",
     )
@@ -87,20 +87,20 @@ def create_point_tab(window):
 
     edge_initial_color = (
         "#000000"
-        if window.params["Point"]["edge_color"] == "none"
-        else window.params["Point"]["edge_color"]
+        if window.params["Point"]["_edge_color"] == "none"
+        else window.params["Point"]["_edge_color"]
     )
     edge_colorpicker = ColorPickerWidget(
         window=window,
         label="Edge Color",
         initial_color=edge_initial_color,
-        param_ids=["Point", ["edge_color"]],
+        param_ids=["Point", ["_edge_color"]],
         activated_on_init=True,
     )
     edge_color_activator = Activator(
         window=window,
         widget=edge_colorpicker,
-        param_ids=["Point", "edge_color"],
+        param_ids=["Point", "_edge_color"],
         check_label="No edge",
         param_if_checked="none",
     )
@@ -113,7 +113,7 @@ def create_point_tab(window):
         mini=0,
         maxi=10,
         tick_interval=1,
-        param_ids=["Point", "edge_width"],
+        param_ids=["Point", "_edge_width"],
         conversion_factor=1,
     )
     layout.addWidget(edge_width_slider)
@@ -125,7 +125,7 @@ def create_point_tab(window):
         mini=0,
         maxi=100,
         tick_interval=5,
-        param_ids=["Point", "marker_size"],
+        param_ids=["Point", "_marker_size"],
         conversion_factor=1,
     )
     layout.addWidget(marker_size_slider)
@@ -136,7 +136,7 @@ def create_point_tab(window):
         label="Marker Style",
         items=["circle", "x", "+", "square", "diamond"],
         param_values=["o", "x", "+", "s", "d"],
-        param_ids=["Point", "marker_style"],
+        param_ids=["Point", "_marker_style"],
     )
     layout.addWidget(marker_style_dropdown)
 
@@ -148,12 +148,12 @@ def create_text_tab(window):
     layout.setAlignment(Qt.AlignTop)
 
     # create text color picker
-    initial_color = window.params["Text"]["color"]
+    initial_color = window.params["Text"]["_color"]
     color = ColorPickerWidget(
         window,
         "Text Color",
         initial_color=initial_color,
-        param_ids=["Text", ["color"]],
+        param_ids=["Text", ["_color"]],
         activated_on_init=True,
     )
     layout.addWidget(color)
@@ -164,7 +164,7 @@ def create_text_tab(window):
         label="Horizontal Alignment",
         items=["left", "center", "right"],
         param_values=["left", "center", "right"],
-        param_ids=["Text", "h_align"],
+        param_ids=["Text", "_h_align"],
     )
     layout.addWidget(h_align)
 
@@ -174,7 +174,7 @@ def create_text_tab(window):
         label="Vertical Alignment",
         items=["baseline", "bottom", "center", "center baseline", "top"],
         param_values=["baseline", "bottom", "center", "center_baseline", "top"],
-        param_ids=["Text", "v_align"],
+        param_ids=["Text", "_v_align"],
     )
     layout.addWidget(v_align)
 
@@ -191,7 +191,7 @@ def create_table_tab(window):
         label="Text alignment",
         items=["left", "center", "right"],
         param_values=["left", "center", "right"],
-        param_ids=["Table", "cell_align"],
+        param_ids=["Table", "_cell_align"],
     )
     layout.addWidget(cell_align)
 
@@ -201,7 +201,7 @@ def create_table_tab(window):
         label="Row headers alignment",
         items=["left", "center", "right"],
         param_values=["left", "center", "right"],
-        param_ids=["Table", "row_align"],
+        param_ids=["Table", "_row_align"],
     )
     layout.addWidget(row_align)
 
@@ -211,7 +211,7 @@ def create_table_tab(window):
         label="Column headers alignment",
         items=["left", "center", "right"],
         param_values=["left", "center", "right"],
-        param_ids=["Table", "col_align"],
+        param_ids=["Table", "_col_align"],
     )
     layout.addWidget(col_align)
 
@@ -233,12 +233,12 @@ def create_hlines_vlines_tab(window):
     layout.addWidget(hlines_line)
 
     # Color picker for hlines
-    initial_color = window.params["Hlines"]["colors"]
+    initial_color = window.params["Hlines"]["_colors"]
     color = ColorPickerWidget(
         window,
         "Color",
         initial_color=initial_color,
-        param_ids=["Hlines", ["colors"]],
+        param_ids=["Hlines", ["_colors"]],
         activated_on_init=True,
     )
     layout.addWidget(color)
@@ -250,7 +250,7 @@ def create_hlines_vlines_tab(window):
         mini=0,
         maxi=20,
         tick_interval=2,
-        param_ids=["Hlines", "line_widths"],
+        param_ids=["Hlines", "_line_widths"],
         conversion_factor=2,
     )
     layout.addWidget(line_width_slider)
@@ -261,7 +261,7 @@ def create_hlines_vlines_tab(window):
         label="Line Style",
         items=["solid", "dashed", "dotted", "dashdot"],
         param_values=["-", "--", ":", "-."],
-        param_ids=["Hlines", "line_styles"],
+        param_ids=["Hlines", "_line_styles"],
     )
     layout.addWidget(line_style_dropdown)
 
@@ -276,12 +276,12 @@ def create_hlines_vlines_tab(window):
     layout.addWidget(vlines_line)
 
     # Color picker for vlines
-    initial_color = window.params["Vlines"]["colors"]
+    initial_color = window.params["Vlines"]["_colors"]
     color = ColorPickerWidget(
         window,
         "Color",
         initial_color=initial_color,
-        param_ids=["Vlines", ["colors"]],
+        param_ids=["Vlines", ["_colors"]],
         activated_on_init=True,
     )
     layout.addWidget(color)
@@ -293,7 +293,7 @@ def create_hlines_vlines_tab(window):
         mini=0,
         maxi=20,
         tick_interval=2,
-        param_ids=["Vlines", "line_widths"],
+        param_ids=["Vlines", "_line_widths"],
         conversion_factor=2,
     )
     layout.addWidget(line_width_slider)
@@ -304,7 +304,7 @@ def create_hlines_vlines_tab(window):
         label="Line Style",
         items=["solid", "dashed", "dotted", "dashdot"],
         param_values=["solid", "--", ":", "-."],
-        param_ids=["Vlines", "line_styles"],
+        param_ids=["Vlines", "_line_styles"],
     )
     layout.addWidget(line_style_dropdown)
 
