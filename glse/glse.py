@@ -2,11 +2,11 @@ import os
 import sys
 
 import graphinglib as gl
-from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.pyplot import close
-from PyQt5.QtCore import Qt
-from PyQt5.QtGui import QCloseEvent, QKeySequence
-from PyQt5.QtWidgets import (
+from PySide6.QtCore import Qt
+from PySide6.QtGui import QCloseEvent, QKeySequence, QShortcut
+from PySide6.QtWidgets import (
     QApplication,
     QCheckBox,
     QDialog,
@@ -20,7 +20,6 @@ from PyQt5.QtWidgets import (
     QMessageBox,
     QPushButton,
     QScrollArea,
-    QShortcut,
     QSplitter,
     QTabWidget,
     QVBoxLayout,

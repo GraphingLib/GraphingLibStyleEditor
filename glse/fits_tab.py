@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QTabWidget, QVBoxLayout, QWidget
+from PySide6.QtWidgets import QTabWidget, QVBoxLayout, QWidget
 
 
 def create_fits_tab(window):

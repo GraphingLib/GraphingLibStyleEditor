@@ -1,5 +1,5 @@
-from PyQt5.QtCore import Qt
-from PyQt5.QtWidgets import QScrollArea, QTabWidget, QVBoxLayout, QWidget
+from PySide6.QtCore import Qt
+from PySide6.QtWidgets import QScrollArea, QTabWidget, QVBoxLayout, QWidget
 
 from .widgets import Activator, CheckBox, ColorPickerWidget, Dropdown, Slider
 

@@ -11,11 +11,11 @@ readme = "README.md"
 
 [tool.poetry.dependencies]
 python = ">=3.10,<3.13"
-pyqt5 = "^5.15.10"
 requests = "^2.31.0"
 setuptools-scm = "^8.0.4"
 qt-material = "^2.14"
 graphinglib = { git = "https://github.com/GraphingLib/GraphingLib.git" }
+pyside6 = "^6.7.1"
 
 [tool.poetry.scripts]
 glse = "glse.cli:main"
