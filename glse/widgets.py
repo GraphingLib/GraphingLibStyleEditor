@@ -1,9 +1,9 @@
 from typing import Optional
 
 from matplotlib.colors import is_color_like, to_hex
-from PyQt5.QtCore import QSortFilterProxyModel, QStringListModel, Qt, pyqtSignal
-from PyQt5.QtGui import QColor, QFont, QIcon, QPainter, QPixmap
-from PyQt5.QtWidgets import (
+from PySide6.QtCore import QSortFilterProxyModel, QStringListModel, Qt, Signal
+from PySide6.QtGui import QColor, QFont, QIcon, QPainter, QPixmap
+from PySide6.QtWidgets import (
     QApplication,
     QCheckBox,
     QColorDialog,
@@ -24,7 +24,7 @@ from PyQt5.QtWidgets import (
 
 
 class ColorButton(QPushButton):
-    colorChanged = pyqtSignal(str)
+    colorChanged = Signal(str)
 
     def __init__(self, *args, color=None, **kwargs):
         super(ColorButton, self).__init__(*args, **kwargs)
