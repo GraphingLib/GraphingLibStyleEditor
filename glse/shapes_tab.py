@@ -8,25 +8,15 @@ def create_shapes_tab(window):
     layout = QVBoxLayout()
     tabWidget = QTabWidget()
 
-    # circle tab
-    circleTabLayout = create_circle_tab(window)
-    circleTab = QWidget()
-    circleTab.setLayout(circleTabLayout)
-    circleTabScrollArea = QScrollArea()
-    circleTabScrollArea.setWidgetResizable(True)
-    circleTabScrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-    circleTabScrollArea.setWidget(circleTab)
-    tabWidget.addTab(circleTabScrollArea, "Circle")
-
-    # create rectangle tab
-    rectangleTabLayout = create_rectangle_tab(window)
-    rectangleTab = QWidget()
-    rectangleTab.setLayout(rectangleTabLayout)
-    rectangleTabScrollArea = QScrollArea()
-    rectangleTabScrollArea.setWidgetResizable(True)
-    rectangleTabScrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
-    rectangleTabScrollArea.setWidget(rectangleTab)
-    tabWidget.addTab(rectangleTabScrollArea, "Rectangle")
+    # polygon tab
+    polygonTabLayout = create_polygon_tab(window)
+    polygonTab = QWidget()
+    polygonTab.setLayout(polygonTabLayout)
+    polygonTabScrollArea = QScrollArea()
+    polygonTabScrollArea.setWidgetResizable(True)
+    polygonTabScrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+    polygonTabScrollArea.setWidget(polygonTab)
+    tabWidget.addTab(polygonTabScrollArea, "Polygon")
 
     # create arrow tab
     arrowTabLayout = create_arrow_tab(window)
@@ -54,12 +44,12 @@ def create_shapes_tab(window):
     return tabWidget
 
 
-def create_circle_tab(window):
+def create_polygon_tab(window):
     layout = QVBoxLayout()
     layout.setAlignment(Qt.AlignTop)
 
     # create fill checkbox
-    fill = CheckBox(window, "Fill", ["Circle", "_fill"])
+    fill = CheckBox(window, "Fill", [["Circle", "Rectangle", "Polygon"], "_fill"])
     layout.addWidget(fill)
 
     # create fill_alpha slider
@@ -69,7 +59,7 @@ def create_circle_tab(window):
         0,
         100,
         5,
-        ["Circle", "_fill_alpha"],
+        [["Circle", "Rectangle", "Polygon"], "_fill_alpha"],
         conversion_factor=100,
     )
     layout.addWidget(fill_alpha)
@@ -81,7 +71,7 @@ def create_circle_tab(window):
         0,
         10,
         1,
-        ["Circle", "_line_width"],
+        [["Circle", "Rectangle", "Polygon"], "_line_width"],
         conversion_factor=1,
     )
     layout.addWidget(line_width)
@@ -92,88 +82,45 @@ def create_circle_tab(window):
         "Line Style",
         ["Solid", "Dashed", "Dotted", "Dash-Dot", "None"],
         ["-", "--", ":", "-.", "None"],
-        ["Circle", "_line_style"],
+        [["Circle", "Rectangle", "Polygon"], "_line_style"],
     )
     layout.addWidget(line_style)
 
+    # create fill color picker
     color = ColorPickerWidget(
         window,
-        "Color",
-        param_ids=["Circle", ["_color"]],
+        "Fill Color",
+        param_ids=[["Polygon", "Circle", "Rectangle"], ["_fill_color"]],
         activated_on_init=(
-            False if window.params["Circle"]["_fill_color"] == "" else True
+            False if window.params["Polygon"]["_fill_color"] == "" else True
         ),
     )
     color_picker_widget = Activator(
         window,
         widget=color,
-        param_ids=["Circle", "_fill_color"],
+        param_ids=[["Polygon", "Circle", "Rectangle"], ["_fill_color"]],
         check_label="Use color cycle",
         param_if_checked=None,
     )
     layout.addWidget(color_picker_widget)
 
-    return layout
-
-
-def create_rectangle_tab(window):
-    layout = QVBoxLayout()
-    layout.setAlignment(Qt.AlignTop)
-
-    # create fill checkbox
-    fill = CheckBox(window, "Fill", ["Rectangle", "_fill"])
-    layout.addWidget(fill)
-
-    # create fill_alpha slider
-    fill_alpha = Slider(
+    # create edge color picker
+    edge_color = ColorPickerWidget(
         window,
-        "Fill Opacity",
-        0,
-        100,
-        5,
-        ["Rectangle", "_fill_alpha"],
-        conversion_factor=100,
-    )
-    layout.addWidget(fill_alpha)
-
-    # create line_width slider
-    line_width = Slider(
-        window,
-        "Line Width",
-        0,
-        10,
-        1,
-        ["Rectangle", "_line_width"],
-        conversion_factor=1,
-    )
-    layout.addWidget(line_width)
-
-    # create line_style dropdown
-    line_style = Dropdown(
-        window,
-        "Line Style",
-        ["Solid", "Dashed", "Dotted", "Dash-Dot", "None"],
-        ["-", "--", ":", "-.", "None"],
-        ["Rectangle", "_line_style"],
-    )
-    layout.addWidget(line_style)
-
-    color = ColorPickerWidget(
-        window,
-        "Color",
-        param_ids=["Rectangle", ["_fill_color"]],
+        "Edge Color",
+        param_ids=[["Polygon", "Circle", "Rectangle"], ["_edge_color"]],
         activated_on_init=(
-            False if window.params["Rectangle"]["_fill_color"] == "" else True
+            False if window.params["Polygon"]["_edge_color"] == "" else True
         ),
     )
-    color_picker_widget = Activator(
+    edge_color_picker_widget = Activator(
         window,
-        widget=color,
-        param_ids=["Rectangle", "_fill_color"],
-        check_label="Use color cycle",
+        widget=edge_color,
+        param_ids=[["Polygon", "Circle", "Rectangle"], ["_edge_color"]],
+        check_label="None",
         param_if_checked=None,
     )
-    layout.addWidget(color_picker_widget)
+    layout.addWidget(edge_color_picker_widget)
 
     return layout
 
