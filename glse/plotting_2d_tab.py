@@ -206,7 +206,7 @@ def create_stream_tab(window: QMainWindow):
         window,
         "Color",
         initial_color=initial_color,
-        param_ids=["Stream", ["color"]],
+        param_ids=["Stream", ["_color"]],
         activated_on_init=window.params["Stream"]["_color"] is not None,
     )
     activator = Activator(
