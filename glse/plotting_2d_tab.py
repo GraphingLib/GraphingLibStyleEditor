@@ -54,9 +54,15 @@ def create_plotting_2d_tab(window: QMainWindow):
     streamTabScrollArea.setWidget(streamTab)
     tabWidget.addTab(streamTabScrollArea, "Stream")
 
-    # Example stubs for each sub-tab
+    # vectorfield tab
+    vectorFieldTabLayout = create_vectorfield_tab(window)
     vectorFieldTab = QWidget()
-    tabWidget.addTab(vectorFieldTab, "VectorField")
+    vectorFieldTab.setLayout(vectorFieldTabLayout)
+    vectorFieldTabScrollArea = QScrollArea()
+    vectorFieldTabScrollArea.setWidgetResizable(True)
+    vectorFieldTabScrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+    vectorFieldTabScrollArea.setWidget(vectorFieldTab)
+    tabWidget.addTab(vectorFieldTabScrollArea, "VectorField")
 
     layout.addWidget(tabWidget)
     window.plotting2DTab.setLayout(layout)
@@ -217,5 +223,59 @@ def create_stream_tab(window: QMainWindow):
         param_if_checked=None,
     )
     layout.addWidget(activator)
+
+    return layout
+
+
+def create_vectorfield_tab(window: QMainWindow):
+    """
+    Parameters to be added:
+    VectorField:
+    _arrow_width: 1
+    _arrow_head_size: 1
+    _color: "k"
+    """
+    layout = QVBoxLayout()
+    layout.setAlignment(Qt.AlignTop)
+
+    # create arrow_width slider
+    arrow_width = Slider(
+        window,
+        "Arrow Width",
+        1,
+        10,
+        1,
+        ["VectorField", "_arrow_width"],
+        conversion_factor=5,
+    )
+    layout.addWidget(arrow_width)
+
+    # create arrow_head_size slider
+    arrow_head_size = Slider(
+        window,
+        "Arrow Head Size",
+        0,
+        10,
+        1,
+        ["VectorField", "_arrow_head_size"],
+        conversion_factor=5,
+    )
+    layout.addWidget(arrow_head_size)
+
+    # create color button with activator
+    initial_color = (
+        "#000000"
+        if window.params["VectorField"]["_color"] is None
+        else window.params["VectorField"]["_color"]
+    )
+    color_picker = ColorPickerWidget(
+        window,
+        "Color",
+        initial_color=initial_color,
+        param_ids=["VectorField", ["_color"]],
+        activated_on_init=window.params["VectorField"]["_color"] is not None,
+    )
+
+    layout.addWidget(color_picker)
 
     return layout
