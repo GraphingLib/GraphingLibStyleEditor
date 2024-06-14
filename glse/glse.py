@@ -105,7 +105,6 @@ class FigureManager(QWidget):
         self.which_figure = os.path.join(
             os.path.dirname(__file__), "figures", self.example_figs_dict[chosen_fig]
         )
-
         self.execute_python_file(
             os.path.join(
                 os.path.dirname(__file__), "figures", self.example_figs_dict[chosen_fig]
@@ -550,6 +549,7 @@ class MainWindow(QMainWindow):
             for i in range(self.tabWidget.count()):
                 self.tabWidget.removeTab(0)
             self.create_tabs()
+            self.canvas.auto_switch_is_on = auto_switch_original
             # set the current tab
             self.tabWidget.setCurrentIndex(current_tab)
             if current_sub_tab is not None:
@@ -660,6 +660,8 @@ class MainWindow(QMainWindow):
             # update the figure
             self.updateFigure()
             # remove all tabs and recreate them to update the params
+            auto_switch_original = self.canvas.auto_switch_is_on
+            self.canvas.auto_switch_is_on = False
             for i in range(self.tabWidget.count()):
                 self.tabWidget.removeTab(0)
             self.create_tabs()
