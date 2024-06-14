@@ -136,8 +136,8 @@ def create_point_tab(window):
     marker_style_dropdown = Dropdown(
         window=window,
         label="Marker Style",
-        items=["circle", "x", "+", "square", "diamond"],
-        param_values=["o", "x", "+", "s", "d"],
+        items=["circle", "x", "+", "square", "thin diamond", "diamond"],
+        param_values=["o", "x", "+", "s", "d", "D"],
         param_ids=["Point", "_marker_style"],
     )
     layout.addWidget(marker_style_dropdown)
