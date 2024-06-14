@@ -329,23 +329,21 @@ def create_histogram_tab(window: QMainWindow):
     histogram_line.setFrameShadow(QFrame.Sunken)
     layout.addWidget(histogram_line)
 
-    # number_of_bins = IntegerBox(
-    #     window, "Number of bins", ["Histogram", "number_of_bins"]
-    # )
-    # layout.addWidget(number_of_bins)
-
+    # Create histogram type dropdown
     hist_type = Dropdown(
         window,
         "Histogram Type:",
-        ["Step-Filled"],
-        ["stepfilled"],
+        ["Step-Filled", "Bar"],
+        ["stepfilled", "bar"],
         ["Histogram", "_hist_type"],
     )
     layout.addWidget(hist_type)
 
+    # Create normalize checkbox
     normalize = CheckBox(window, "Normalized", ["Histogram", "_normalize"])
     layout.addWidget(normalize)
 
+    # Create face color picker
     face_color = ColorPickerWidget(
         window,
         "Face Color:",
@@ -354,9 +352,11 @@ def create_histogram_tab(window: QMainWindow):
     )
     layout.addWidget(face_color)
 
+    # Create alpha slider
     alpha = Slider(window, "Opacity:", 0, 100, 5, ["Histogram", "_alpha"], 100)
     layout.addWidget(alpha)
 
+    # Create edge color picker
     edge_color = ColorPickerWidget(
         window,
         "Edge Color:",
@@ -365,6 +365,7 @@ def create_histogram_tab(window: QMainWindow):
     )
     layout.addWidget(edge_color)
 
+    # Create line width slider
     line_width = Slider(window, "Line Width:", 0, 20, 1, ["Histogram", "_line_width"])
     layout.addWidget(line_width)
 
@@ -377,15 +378,23 @@ def create_histogram_tab(window: QMainWindow):
     pdf_line.setFrameShadow(QFrame.Sunken)
     layout.addWidget(pdf_line)
 
-    show_params = CheckBox(window, "Show Parameters", ["Histogram", "_show_params"])
+    # Create pdf params checkbox
+    show_params = CheckBox(
+        window, "Show Parameters in Legend", ["Histogram", "_show_params"]
+    )
     layout.addWidget(show_params)
 
-    pdf_show_mean = CheckBox(window, "Show Mean", ["Histogram", "_pdf_show_mean"])
+    # Create pdf plot mean checkbox
+    pdf_show_mean = CheckBox(window, "Plot Mean", ["Histogram", "_pdf_show_mean"])
     layout.addWidget(pdf_show_mean)
 
-    pdf_show_std = CheckBox(window, "Show STD", ["Histogram", "_pdf_show_std"])
+    # Create pdf plot std checkbox
+    pdf_show_std = CheckBox(
+        window, "Plot standard deviation", ["Histogram", "_pdf_show_std"]
+    )
     layout.addWidget(pdf_show_std)
 
+    # Create pdf curve color picker
     pdf_curve_color = ColorPickerWidget(
         window,
         "Curve:",
@@ -394,6 +403,7 @@ def create_histogram_tab(window: QMainWindow):
     )
     layout.addWidget(pdf_curve_color)
 
+    # Create pdf mean and std color pickers
     pdf_mean_color = ColorPickerWidget(
         window,
         "Mean Line:",
