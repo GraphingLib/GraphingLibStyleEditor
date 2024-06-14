@@ -486,11 +486,15 @@ class MainWindow(QMainWindow):
         self.tab_widget_2d = create_plotting_2d_tab(self)
         self.tab_widget_2d.currentChanged.connect(self.sub_tab_changed)
 
-        # Fits tab with nested tabs
+        # Fits tab
         self.fitsTab = QWidget()
-        self.tabWidget.addTab(self.fitsTab, "Fits")
-        self.tab_widget_fits = create_fits_tab(self)
-        self.tab_widget_fits.currentChanged.connect(self.sub_tab_changed)
+        fitsTabLayout = create_fits_tab(self)
+        self.fitsTab.setLayout(fitsTabLayout)
+        self.fitsTabScrollArea = QScrollArea()
+        self.fitsTabScrollArea.setWidgetResizable(True)
+        self.fitsTabScrollArea.setHorizontalScrollBarPolicy(Qt.ScrollBarAlwaysOff)
+        self.fitsTabScrollArea.setWidget(self.fitsTab)
+        self.tabWidget.addTab(self.fitsTabScrollArea, "Fits")
 
         # Shapes tab with nested tabs
         self.shapesTab = QWidget()
@@ -714,27 +718,30 @@ class MainWindow(QMainWindow):
         # update the style name label
         self.styleNameLabel.setText("Current Style: " + self.current_style)
 
-    def update_params(self, section: str, params_name: str | list, value):
+    def update_params(self, sections: str | list, params_name: str | list, value):
         if not isinstance(params_name, list):
             params_name = [params_name]
-        for p in params_name:
-            # Update the parameters
-            self.params[section][p] = value
+        if not isinstance(sections, list):
+            sections = [sections]
+        for section in sections:
+            for p in params_name:
+                # Update the parameters
+                self.params[section][p] = value
 
-            # Check if the new value is different from the original
-            orig = self.original_params[section][p]
-            if orig != value:
-                # set value in unsaved changes dict (may have to create section/params_name key)
-                if section not in self.unsaved_changes:
-                    self.unsaved_changes[section] = {}
-                self.unsaved_changes[section][p] = value
-            else:
-                # remove value from unsaved changes dict
-                if section in self.unsaved_changes:
-                    if p in self.unsaved_changes[section]:
-                        del self.unsaved_changes[section][p]
-                    if not self.unsaved_changes[section]:
-                        del self.unsaved_changes[section]
+                # Check if the new value is different from the original
+                orig = self.original_params[section][p]
+                if orig != value:
+                    # set value in unsaved changes dict (may have to create section/params_name key)
+                    if section not in self.unsaved_changes:
+                        self.unsaved_changes[section] = {}
+                    self.unsaved_changes[section][p] = value
+                else:
+                    # remove value from unsaved changes dict
+                    if section in self.unsaved_changes:
+                        if p in self.unsaved_changes[section]:
+                            del self.unsaved_changes[section][p]
+                        if not self.unsaved_changes[section]:
+                            del self.unsaved_changes[section]
 
         # Update the figure
         self.updateFigure()
@@ -794,6 +801,8 @@ class MainWindow(QMainWindow):
                 current_sub_tab = None
             if current_sub_tab is not None:
                 self.canvas.tab_changed_to(current_sub_tab)
+            else:
+                self.canvas.tab_changed_to(current_tab)
 
     def sub_tab_changed(self, index):
         if not self.canvas.auto_switch_is_on:
