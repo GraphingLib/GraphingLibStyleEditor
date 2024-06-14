@@ -1,7 +1,7 @@
 from typing import Optional
 
 from matplotlib.colors import is_color_like, to_hex
-from PySide6.QtCore import QSortFilterProxyModel, QStringListModel, Qt, Signal
+from PySide6.QtCore import QSortFilterProxyModel, QStringListModel, Qt, Signal, QPoint
 from PySide6.QtGui import QColor, QFont, QIcon, QPainter, QPixmap
 from PySide6.QtWidgets import (
     QApplication,
@@ -21,6 +21,7 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+from graphinglib import get_colors
 
 
 class ColorButton(QPushButton):
@@ -488,15 +489,23 @@ class IndicatorListWidget(QWidget):
         pixmap.fill(Qt.transparent)  # Ensure the background is transparent
 
         painter = QPainter(pixmap)
-        color = QColor("blue") if is_gl else QColor("green")
-        painter.setBrush(color)
-        painter.drawEllipse(3, 3, 14, 14)  # Draw a filled circle
-
-        # Draw the letter '2' if has_gl_twin is True
-        if has_gl_twin:
-            painter.setFont(QFont("Arial", 20))
-            painter.setPen(QColor("grey"))
-            painter.drawText(25, 17, "2")
+        colors = ["#3e82a0", "#edb73b", "#8aba4e"]
+        # 3 color options. Teal for GL, Amber for non-GL, and Taupe for GL twin
+        if is_gl and not has_gl_twin:  # GL
+            color = QColor(colors[0])
+            painter.setBrush(color)
+            painter.drawEllipse(3, 3, 14, 14)  # Draw a filled circle
+        elif not is_gl and not has_gl_twin:  # Custom
+            color = QColor(colors[1])
+            painter.setBrush(color)
+            painter.drawRect(3, 3, 14, 14)  # Draw a filled square
+        elif not is_gl and has_gl_twin:  # Custom with GL twin
+            color = QColor(colors[2])
+            painter.setBrush(color)
+            # Draw a filled triangle
+            painter.drawPolygon([QPoint(3, 17), QPoint(17, 17), QPoint(10, 3)])
+        else:
+            raise ValueError("Invalid combination of is_gl and has_gl_twin")
 
         painter.end()
 
@@ -549,3 +558,54 @@ class IndicatorListWidget(QWidget):
         self.list_widget.clear()
         for state, text in items:
             self._add_item(text, *state)
+
+
+class IconLabel(QWidget):
+    def __init__(self, icon_type, text, parent=None):
+        super().__init__(parent)
+        layout = QHBoxLayout(self)
+        label = QLabel(self)
+        label.setText(text)
+        label.setWordWrap(False)
+        label.setFont(QFont("Arial", 12))
+        label.setStyleSheet("color: #bfbfbf;")
+        # set line height to 20px
+        label.setFixedHeight(15)
+
+        if icon_type == "GL":
+            icon = self.create_indicator_icon(True, False)
+        elif icon_type == "Custom":
+            icon = self.create_indicator_icon(False, False)
+        elif icon_type == "Twin":
+            icon = self.create_indicator_icon(False, True)
+        icon_label = QLabel(self)
+        icon_label.setPixmap(icon.pixmap(10, 10))
+
+        layout.addWidget(icon_label)
+        layout.addWidget(label)
+        layout.setAlignment(Qt.AlignLeft)
+        self.setLayout(layout)
+
+    def create_indicator_icon(self, is_gl, has_gl_twin=False):
+        pixmap = QPixmap(20, 20)
+        pixmap.fill(Qt.transparent)
+
+        painter = QPainter(pixmap)
+        colors = ["#3e82a0", "#edb73b", "#8aba4e"]
+        if is_gl and not has_gl_twin:
+            color = QColor(colors[0])
+            painter.setBrush(color)
+            painter.drawEllipse(3, 3, 14, 14)
+        elif not is_gl and not has_gl_twin:
+            color = QColor(colors[1])
+            painter.setBrush(color)
+            painter.drawRect(3, 3, 14, 14)
+        elif not is_gl and has_gl_twin:
+            color = QColor(colors[2])
+            painter.setBrush(color)
+            painter.drawPolygon([QPoint(3, 17), QPoint(17, 17), QPoint(10, 3)])
+        else:
+            raise ValueError("Invalid combination of is_gl and has_gl_twin")
+
+        painter.end()
+        return QIcon(pixmap)

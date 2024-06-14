@@ -33,7 +33,7 @@ from .other_gl_tab import create_other_gl_tab
 from .plotting_1d_tab import create_plotting_1d_tab
 from .plotting_2d_tab import create_plotting_2d_tab
 from .shapes_tab import create_shapes_tab
-from .widgets import IndicatorListWidget
+from .widgets import IndicatorListWidget, IconLabel
 
 
 class GLCanvas(FigureCanvas):
@@ -220,12 +220,24 @@ class StyleManager(QDialog):
         self.styleList.list_widget.itemSelectionChanged.connect(self.update_selection)
 
         # Explanation label
-        self.explanationLabel = QLabel(self)
-        self.explanationLabel.setText(
-            "Green: Custom style\nBlue: Built-in style\n2: This is a custom style that overrides a built-in style of the same name."
+        self.explanationWidget = QWidget(self)
+        self.explanationLayout = QVBoxLayout(self)
+        self.explanationLayout.addWidget(
+            IconLabel("GL", "Built-in GraphingLib style", parent=self)
         )
-        self.explanationLabel.setWordWrap(True)
-        self.explanationLabel.setStyleSheet("color: #bfbfbf")
+        self.explanationLayout.addWidget(
+            IconLabel("Custom", "Custom style", parent=self)
+        )
+        self.explanationLayout.addWidget(
+            IconLabel(
+                "Twin",
+                "Custom style that overrides a built-in style of the same name",
+                parent=self,
+            )
+        )
+        self.explanationLayout.setSpacing(0)
+        self.explanationLayout.setContentsMargins(0, 0, 0, 0)
+        self.explanationWidget.setLayout(self.explanationLayout)
 
         # Add buttons to delete, rename styles, and set a style as the default
         self.renameButton = QPushButton("Rename", self)
@@ -249,7 +261,7 @@ class StyleManager(QDialog):
         v_layout_1 = QVBoxLayout()
         v_layout_1.addWidget(self.default_style_label)
         v_layout_1.addLayout(main_h_layout)
-        v_layout_1.addWidget(self.explanationLabel)
+        v_layout_1.addWidget(self.explanationWidget)
         self.setLayout(v_layout_1)
 
         self.shortcut_close = QShortcut(QKeySequence("Ctrl+W"), self)
