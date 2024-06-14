@@ -263,8 +263,9 @@ def create_scatter_tab(window: QMainWindow):
             "Square",
             "X",
             "Thin Diamond",
+            "+",
         ],
-        ["o", "^", "v", "<", ">", "s", "x", "d"],
+        ["o", "^", "v", "<", ">", "s", "x", "d", "+"],
         ["Scatter", "_marker_style"],
     )
     layout.addWidget(marker_style_dropdown)
