@@ -19,6 +19,7 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QMessageBox,
     QPushButton,
+    QComboBox,
     QScrollArea,
     QSplitter,
     QTabWidget,
@@ -46,8 +47,12 @@ class FigureManager(QWidget):
     def __init__(self, params: dict, which_figure: str = "curve"):
         super().__init__()
         self.layout = QVBoxLayout()
+
         self.button = QPushButton("Load Figure from file")
         self.button.clicked.connect(self.load_python_file)
+        self.save_button = QPushButton("Save Figure as image")
+        self.save_button.clicked.connect(self.save_figure)
+
         # Create list of example figures to choose from
         self.horiz1_layout = QHBoxLayout()
         self.exampleFigures = QListWidget()
@@ -60,6 +65,7 @@ class FigureManager(QWidget):
         self.exampleFigures.itemSelectionChanged.connect(self.choose_builtin_figure)
         self.exampleFigures.setFixedWidth(200)
         self.exampleFigures.setFixedHeight(100)
+
         # Add auto switch checkbox
         self.autoSwitchCheckbox = QCheckBox("Auto Switch")
         self.autoSwitchCheckbox.setChecked(True)
@@ -69,11 +75,13 @@ class FigureManager(QWidget):
         self.horiz1_layout.addWidget(self.exampleFigures)
         self.layout.addLayout(self.horiz1_layout)
         self.layout.addWidget(self.button)
+        self.layout.addWidget(self.save_button)
         self.setLayout(self.layout)
         self.which_figure = which_figure
         self.params = params
         self.chosen = None
         self.canvas = None
+
         # Check if figure is a path or just name
         if not self.which_figure.endswith(".py"):
             figures = os.listdir(os.path.join(os.path.dirname(__file__), "figures"))
@@ -98,6 +106,64 @@ class FigureManager(QWidget):
             self.autoSwitchCheckbox.setChecked(False)
             self.auto_switch_is_on = False
             self.execute_python_file(filepath)
+
+    def save_figure(self):
+        if self.canvas and self.canvas.fig:
+            save_dialog = QDialog(self)
+            save_dialog.setWindowTitle("Save Figure Options")
+
+            layout = QVBoxLayout(save_dialog)
+
+            format_label = QLabel("Select Format:")
+            format_combo = QComboBox()
+            format_combo.addItems(["PNG", "PDF", "SVG"])
+
+            size_label = QLabel("Figure Size (Width x Height in inches):")
+
+            default_width, default_height = self.params["Figure"]["_size"]
+            width_input = QLineEdit(str(default_width))
+            height_input = QLineEdit(str(default_height))
+
+            quality_label = QLabel("Quality (DPI):")
+            quality_input = QLineEdit("200")
+
+            save_button = QPushButton("Save")
+            save_button.clicked.connect(
+                lambda: self.perform_save(
+                    format_combo.currentText(),
+                    float(width_input.text()),
+                    float(height_input.text()),
+                    int(quality_input.text()),
+                    save_dialog,
+                )
+            )
+
+            layout.addWidget(format_label)
+            layout.addWidget(format_combo)
+            layout.addWidget(size_label)
+            layout.addWidget(width_input)
+            layout.addWidget(height_input)
+            layout.addWidget(quality_label)
+            layout.addWidget(quality_input)
+            layout.addWidget(save_button)
+
+            save_dialog.setLayout(layout)
+            save_dialog.exec()
+
+    def perform_save(self, format, width, height, dpi, dialog):
+        if self.canvas and self.canvas.fig:
+            dialog.accept()
+            filepath, _ = QFileDialog.getSaveFileName(
+                self,
+                "Save Figure",
+                "",
+                f"{format} Files (*.{format.lower()});;All Files (*)",
+            )
+            if filepath:
+                original_size = self.canvas.fig.get_size_inches()
+                self.canvas.fig.set_size_inches(width, height)
+                self.canvas.fig.savefig(filepath, format=format.lower(), dpi=dpi)
+                self.canvas.fig.set_size_inches(original_size)
 
     def choose_builtin_figure(self):
         self.chosen = None
