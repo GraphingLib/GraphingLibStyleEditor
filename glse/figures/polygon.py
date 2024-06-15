@@ -10,7 +10,6 @@ polygon = gl.Polygon(
         (0.5, 1.5),
         (0, 1),
     ],
-    fill=True,
 )
 
 # Create a circle

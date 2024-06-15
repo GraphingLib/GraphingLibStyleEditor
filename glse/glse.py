@@ -94,6 +94,7 @@ class FigureManager(QWidget):
                     f"Figure {self.which_figure} not found in figures directory"
                 )
         self.execute_python_file(self.which_figure)
+        self.tab_changed_to("Figure")
 
     def load_python_file(self):
         filepath, _ = QFileDialog.getOpenFileName(
