@@ -91,20 +91,20 @@ def create_curve_tab(window: QMainWindow):
     # create fill under color picker and "same as curve" checkbox
     initial_fill_under_color = (
         "#000000"
-        if window.params["Curve"]["_fill_under_color"] == "same as curve"
-        else window.params["Curve"]["_fill_under_color"]
+        if window.params["Curve"]["_fill_between_color"] == "same as curve"
+        else window.params["Curve"]["_fill_between_color"]
     )
     fill_under_color = ColorPickerWidget(
         window,
         "Fill Under",
         initial_fill_under_color,
-        param_ids=["Curve", ["_fill_under_color"]],
+        param_ids=["Curve", ["_fill_between_color"]],
         activated_on_init=False,
     )
     fill_under_color_checkbox = Activator(
         window,
         fill_under_color,
-        param_ids=["Curve", "_fill_under_color"],
+        param_ids=["Curve", "_fill_between_color"],
         check_label="Same as curve",
         param_if_checked="same as curve",
     )
