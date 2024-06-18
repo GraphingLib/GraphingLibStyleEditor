@@ -9,7 +9,15 @@ from PySide6.QtWidgets import (
     QWidget,
 )
 
-from .widgets import Activator, CheckBox, ColorPickerWidget, Dropdown, Slider
+
+from .widgets import (
+    Activator,
+    ActivatorDropdown,
+    CheckBox,
+    ColorPickerWidget,
+    Dropdown,
+    Slider,
+)
 
 
 def create_plotting_1d_tab(window: QMainWindow):
@@ -222,15 +230,6 @@ def create_curve_tab(window: QMainWindow):
     errorcurve_line.setFrameShadow(QFrame.Sunken)
     layout.addWidget(errorcurve_line)
 
-    """
-    Things to add
-    
-    _error_curves_color: same as curve
-    _error_curves_fill_between: true
-    _error_curves_line_style: --
-     _error_curves_line_width: same as curve
-    """
-
     # create error curve color picker and "same as curve" checkbox
     error_curves_initial_color = (
         "#000000"
@@ -305,21 +304,52 @@ def create_scatter_tab(window: QMainWindow):
     scatter_line.setFrameShadow(QFrame.Sunken)
     layout.addWidget(scatter_line)
 
+    initial_color = (
+        "#000000"
+        if window.params["Scatter"]["_face_color"] in ("color cycle", None)
+        else window.params["Scatter"]["_face_color"]
+    )
+    marker_face_color = ColorPickerWidget(
+        window,
+        label="Marker Face Color:",
+        initial_color=initial_color,
+        param_ids=["Scatter", ["_face_color"]],
+        activated_on_init=(
+            False
+            if window.params["Scatter"]["_face_color"] in (None, "color cycle")
+            else True
+        ),
+    )
+    marker_face_color_checkbox = ActivatorDropdown(
+        window,
+        widget=marker_face_color,
+        param_ids=["Scatter", "_face_color"],
+        active_label="Choose color",
+        inactive_labels=["Color cycle", "None"],
+        params_if_inactive=["color cycle", None],
+    )
+    layout.addWidget(marker_face_color_checkbox)
+    initial_color = (
+        "#000000"
+        if window.params["Scatter"]["_edge_color"] in ("color cycle", None)
+        else window.params["Scatter"]["_edge_color"]
+    )
     marker_edge_color = ColorPickerWidget(
         window,
-        "Marker Edge Color:",
-        window.params["Scatter"]["_edge_color"],
-        ["Scatter", ["_edge_color"]],
+        label="Marker Edge Color:",
+        initial_color=initial_color,
+        param_ids=["Scatter", ["_edge_color"]],
         activated_on_init=(
             False if window.params["Scatter"]["_edge_color"] == "none" else True
         ),
     )
-    marker_edge_color_checkbox = Activator(
+    marker_edge_color_checkbox = ActivatorDropdown(
         window,
         widget=marker_edge_color,
         param_ids=["Scatter", "_edge_color"],
-        check_label="None",
-        param_if_checked="none",
+        active_label="Choose color",
+        inactive_labels=["Color cycle", "None"],
+        params_if_inactive=["color cycle", None],
     )
     layout.addWidget(marker_edge_color_checkbox)
 

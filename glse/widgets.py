@@ -21,7 +21,6 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from graphinglib import get_colors
 
 
 class ColorButton(QPushButton):
@@ -199,6 +198,78 @@ class Activator(QWidget):
             new_param = self.param_if_checked
         else:
             new_param = self.widget.getValue()
+        self.the_window.update_params(self.param_sections, self.param_labels, new_param)
+
+
+class ActivatorDropdown(QWidget):
+    """
+    Same as Activator but with a dropdown instead of a checkbox
+    Permits more than 2 options
+    """
+
+    def __init__(
+        self,
+        window: QMainWindow,
+        widget,
+        param_ids=[],
+        active_label="",
+        inactive_labels=[],
+        params_if_inactive: list[str] = [],
+    ):
+        super(ActivatorDropdown, self).__init__()
+        self.the_window = window
+        self.widget = widget
+        self.param_sections = param_ids[0]
+        self.param_labels = param_ids[1]
+        self.first_param_section = (
+            self.param_sections[0]
+            if isinstance(self.param_sections, list)
+            else self.param_sections
+        )
+        self.first_param_label = (
+            self.param_labels[0]
+            if isinstance(self.param_labels, list)
+            else self.param_labels
+        )
+        self.params_if_inactive = params_if_inactive
+        self.active_label = active_label
+        self.inactive_labels = inactive_labels
+
+        self.layout = QHBoxLayout(self)  # type: ignore
+
+        self.dropdown = QComboBox()
+        self.dropdown.addItem(active_label)
+        self.dropdown.addItems(inactive_labels)
+        if (
+            self.the_window.params[self.first_param_section][self.first_param_label]
+            in params_if_inactive
+        ):
+            index = (
+                params_if_inactive.index(
+                    self.the_window.params[self.first_param_section][
+                        self.first_param_label
+                    ]
+                )
+                + 1
+            )
+        else:
+            index = 0
+        self.dropdown.setCurrentIndex(index)
+        self.dropdown.currentIndexChanged.connect(self.onCurrentIndexChanged)
+        self.widget.setEnabled(index == 0)
+        self.layout.addWidget(widget)
+        self.layout.addWidget(self.dropdown)
+
+    def onCurrentIndexChanged(self, index):
+        self.widget.setEnabled(index == 0)
+        if index == 0:
+            new_param = self.widget.getValue()
+        else:
+            current_text = self.dropdown.currentText()
+            # get the index of the current text in the inactive labels
+            text_index = self.dropdown.findText(current_text)
+            # get the corresponding param from the params_if_inactive
+            new_param = self.params_if_inactive[text_index - 1]
         self.the_window.update_params(self.param_sections, self.param_labels, new_param)
 
 
