@@ -212,6 +212,83 @@ def create_curve_tab(window: QMainWindow):
     )
     layout.addWidget(cap_thickness_checkbox)
 
+    # section for error curves
+    errorcurve_label = QLabel("Error curves:")
+    errorcurve_label.setStyleSheet("font-weight: bold;")
+    layout.addWidget(errorcurve_label)
+
+    errorcurve_line = QFrame()
+    errorcurve_line.setFrameShape(QFrame.HLine)
+    errorcurve_line.setFrameShadow(QFrame.Sunken)
+    layout.addWidget(errorcurve_line)
+
+    """
+    Things to add
+    
+    _error_curves_color: same as curve
+    _error_curves_fill_between: true
+    _error_curves_line_style: --
+     _error_curves_line_width: same as curve
+    """
+
+    # create error curve color picker and "same as curve" checkbox
+    error_curves_initial_color = (
+        "#000000"
+        if window.params["Curve"]["_error_curves_color"] == "same as curve"
+        else window.params["Curve"]["_error_curves_color"]
+    )
+    error_curves_color = ColorPickerWidget(
+        window,
+        "Color",
+        error_curves_initial_color,
+        ["Curve", ["_error_curves_color"]],
+        activated_on_init=window.params["Curve"]["_error_curves_color"]
+        != "same as curve",
+    )
+    error_curves_color_checkbox = Activator(
+        window,
+        error_curves_color,
+        param_ids=["Curve", "_error_curves_color"],
+        check_label="Same as curve",
+        param_if_checked="same as curve",
+    )
+    layout.addWidget(error_curves_color_checkbox)
+
+    # create error curve fill between checkbox
+    error_curves_fill_between = CheckBox(
+        window, "Fill Between", ["Curve", "_error_curves_fill_between"]
+    )
+    layout.addWidget(error_curves_fill_between)
+
+    # create error curve line style dropdown
+    error_curves_line_style = Dropdown(
+        window,
+        "Line Style:",
+        ["Solid", "Dashed", "Dotted", "Dash-Dot"],
+        ["-", "--", ":", "-."],
+        ["Curve", "_error_curves_line_style"],
+    )
+    layout.addWidget(error_curves_line_style)
+
+    # create error curve line width slider and "same as curve" checkbox
+    error_curves_line_width_slider = Slider(
+        window,
+        "Line Width:",
+        0,
+        20,
+        1,
+        ["Curve", "_error_curves_line_width"],
+        conversion_factor=4,
+    )
+    error_curves_line_width_checkbox = Activator(
+        window,
+        error_curves_line_width_slider,
+        param_ids=["Curve", "_error_curves_line_width"],
+        check_label="Same as curve",
+        param_if_checked="same as curve",
+    )
+    layout.addWidget(error_curves_line_width_checkbox)
+
     return layout
 
 
