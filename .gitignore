@@ -1,10 +1,13 @@
 *.py
 !glse/*.py
 !glse/figures/*.py
+!docs/conf.py
 
 **/__pycache__
 
 glse/.vscode
+
+docs/_build
 
 .vscode
 .venv

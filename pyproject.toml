@@ -20,6 +20,12 @@ pyside6 = "^6.7.1"
 [tool.poetry.scripts]
 glse = "glse.cli:main"
 
+[tool.poetry.group.dev.dependencies]
+sphinx = "^7.3.7"
+pydata-sphinx-theme = "^0.15.3"
+sphinx-favicon = "^1.0.1"
+sphinx-design = "^0.6.0"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
