@@ -35,7 +35,7 @@ html_show_sourcelink = False
 html_css_files = ["graphinglib.css"]
 html_theme_options = {
     "logo": {
-        "text": "GraphingLib Style Editor",
+        "text": "Style Editor",
         "image_dark": "_static/GraphingLib-SE-Logo.svg",
         "image_light": "_static/GraphingLib-SE-Logo.svg",
     },
