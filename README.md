@@ -1,0 +1,27 @@
+# GraphingLib Style Editor
+
+![GraphingLib Style Editor logo](images/GraphingLib-SE-Logo.svg)
+
+GraphingLib Style Editor is a GUI application designed to make the creation, editing and managing of GraphingLib styles.
+
+## Quick start
+
+Install GraphingLib Style Editor with **pip** :
+
+```
+pip install glse
+```
+
+Install from [GitHub source code](https://github.com/GraphingLib/GraphingLibStyleEditor) :
+
+```
+pip install git+https://github.com/GraphingLib/GraphingLibStyleEditor.git
+````
+
+To open the Style Editor, in a terminal, enter
+
+```
+glse
+```
+
+It is as simple as that! For further information on how to use the Style Editor, visit its [documentation page](https://www.graphinglib.org/projects/graphinglibstyleeditor/).
