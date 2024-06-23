@@ -2,3 +2,4 @@ git+https://github.com/GraphingLib/GraphingLibStyleEditor.git
 sphinx-favicon
 sphinx-design
 sphinx-copybutton
+pydata-sphinx-theme
