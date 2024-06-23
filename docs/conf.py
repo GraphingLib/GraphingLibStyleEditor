@@ -47,5 +47,5 @@ html_theme_options = {
     "pygment_dark_style": "github-dark",
 }
 html_static_path = ["_static"]
-html_sidebars = {"quickstart": [], "compatibility": []}
+html_sidebars = {"handbook": [], "compatibility": []}
 favicons = ["GraphingLib-favicon_250x250.png"]
