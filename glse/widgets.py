@@ -1,7 +1,15 @@
 from typing import Optional
 
+import matplotlib as mpl
 from matplotlib.colors import is_color_like, to_hex
-from PySide6.QtCore import QSortFilterProxyModel, QStringListModel, Qt, Signal, QPoint
+from PySide6.QtCore import (
+    QSortFilterProxyModel,
+    QStringListModel,
+    Qt,
+    Signal,
+    QPoint,
+    QTimer,
+)
 from PySide6.QtGui import QColor, QFont, QIcon, QPainter, QPixmap
 from PySide6.QtWidgets import (
     QApplication,
@@ -9,6 +17,7 @@ from PySide6.QtWidgets import (
     QColorDialog,
     QComboBox,
     QHBoxLayout,
+    QHeaderView,
     QLabel,
     QLineEdit,
     QListView,
@@ -17,6 +26,8 @@ from PySide6.QtWidgets import (
     QMainWindow,
     QPushButton,
     QSlider,
+    QTableWidget,
+    QTableWidgetItem,
     QSpinBox,
     QVBoxLayout,
     QWidget,
@@ -679,4 +690,229 @@ class IconLabel(QWidget):
             raise ValueError("Invalid combination of is_gl and has_gl_twin")
 
         painter.end()
+        return QIcon(pixmap)
+
+
+class TableWidget(QWidget):
+    def __init__(self, window: QMainWindow, initial_dict=None):
+        super().__init__()
+        self.the_window = window
+        self.layout = QVBoxLayout(self)
+
+        self.table = QTableWidget(0, 3)
+        self.table.setMaximumHeight(250)
+        self.table.setHorizontalHeaderLabels(["Key", "Value", "Status"])
+        self.table.horizontalHeader().setStretchLastSection(True)
+        self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.layout.addWidget(self.table)
+
+        self.updating = False
+        self.first_table_resize = False
+        self.addButton = QPushButton("Add Row")
+        self.deleteButton = QPushButton("Delete Row")
+        self.addButton.clicked.connect(self.addRow)
+        self.deleteButton.clicked.connect(self.deleteRow)
+
+        buttonLayout = QHBoxLayout()
+        buttonLayout.addWidget(self.addButton)
+        buttonLayout.addWidget(self.deleteButton)
+        self.layout.addLayout(buttonLayout)
+
+        self.handled_elsewhere = [
+            "figure.facecolor",
+            "axes.facecolor",
+            "axes.edgecolor",
+            "axes.labelcolor",
+            "axes.linewidth",
+            "axes.prop_cycle",
+            "xtick.color",
+            "ytick.color",
+            "xtick.direction",
+            "ytick.direction",
+            "legend.facecolor",
+            "legend.edgecolor",
+            "font.family",
+            "font.size",
+            "lines.solid_capstyle",
+            "lines.dash_joinstyle",
+            "lines.dash_capstyle",
+            "grid.linestyle",
+            "grid.linewidth",
+            "grid.color",
+            "grid.alpha",
+            "axes.grid",
+        ]
+
+        self.initial_dict = initial_dict if initial_dict else {}
+        self.initial_dict = {
+            k: str(v)
+            for k, v in self.initial_dict.items()
+            if k not in self.handled_elsewhere
+        }
+
+        self.populateTable()
+
+        self.timer = QTimer()
+        self.timer.setSingleShot(True)
+        self.timer.timeout.connect(self.updateTableHeight)
+        self.timer.start(100)
+
+        valid_data = self.getTableData()
+        self.the_window.update_rc_params_from_table(valid_data, init=True)
+        self.table.itemChanged.connect(self.onTableItemChanged)
+
+        self.addLegend()
+
+    def addLegend(self):
+        legend_layout = QHBoxLayout()
+        valid_icon = self.create_indicator_icon("Valid")
+        invalid_icon = self.create_indicator_icon("Invalid Value")
+        handled_icon = self.create_indicator_icon("Handled Elsewhere")
+
+        valid_label = QLabel()
+        valid_label.setPixmap(valid_icon.pixmap(20, 20))
+        invalid_label = QLabel()
+        invalid_label.setPixmap(invalid_icon.pixmap(20, 20))
+        handled_label = QLabel()
+        handled_label.setPixmap(handled_icon.pixmap(20, 20))
+
+        legend_layout.addWidget(QLabel("Valid key/value:"))
+        legend_layout.addWidget(valid_label)
+        legend_layout.addWidget(QLabel("Invalid key/value:"))
+        legend_layout.addWidget(invalid_label)
+        legend_layout.addWidget(QLabel("Ignored (set elsewhere in GLSE):"))
+        legend_layout.addWidget(handled_label)
+
+        self.layout.addLayout(legend_layout)
+
+    def populateTable(self):
+        for key, value in self.initial_dict.items():
+            self.addRow(key, value, init=True)
+        self.validateTable()
+
+    def addRow(self, key="", value="", init=False):
+        if not self.updating:
+            self.updating = True
+            rowPosition = self.table.rowCount()
+            self.table.insertRow(rowPosition)
+            keyItem = QTableWidgetItem(key)
+            valueItem = QTableWidgetItem(value)
+            statusItem = QTableWidgetItem("")
+            self.table.setItem(rowPosition, 0, keyItem)
+            self.table.setItem(rowPosition, 1, valueItem)
+            self.table.setItem(rowPosition, 2, statusItem)
+            keyItem.setFlags(keyItem.flags() | Qt.ItemIsEditable)
+            valueItem.setFlags(valueItem.flags() | Qt.ItemIsEditable)
+            statusItem.setFlags(statusItem.flags() & ~Qt.ItemIsEditable)
+            statusItem.setTextAlignment(Qt.AlignCenter)
+            valid_data = self.getTableData()
+            if not init:
+                self.the_window.update_rc_params_from_table(valid_data)
+            self.updateTableHeight()
+            self.updating = False
+
+    def deleteRow(self):
+        if not self.updating:
+            self.updating = True
+            rowPosition = self.table.currentRow()
+            if bool(self.table.selectedItems()):
+                self.table.removeRow(rowPosition)
+            else:
+                self.table.removeRow(self.table.rowCount() - 1)
+            self.updateTableHeight()
+            valid_data = self.getTableData()
+            self.the_window.update_rc_params_from_table(valid_data)
+            self.updating = False
+
+    def getTableData(self):
+        data_dict = {}
+        for row in range(self.table.rowCount()):
+            keyItem = self.table.item(row, 0)
+            valueItem = self.table.item(row, 1)
+            statusItem = self.table.item(row, 2)
+            if keyItem and valueItem and statusItem:
+                status = statusItem.data(Qt.UserRole)
+                if status == "Valid":
+                    data_dict[keyItem.text()] = valueItem.text()
+        return data_dict
+
+    def updateTableHeight(self):
+        row_count = self.table.rowCount()
+        if row_count == 0:
+            self.table.setFixedHeight(50)  # Minimum height for empty table
+        else:
+            row_height = self.table.rowHeight(0)
+            header_height = self.table.horizontalHeader().height()
+            total_height = row_count * row_height + header_height
+            self.table.setFixedHeight(min(total_height, 250))
+
+    def onTableItemChanged(self, item):
+        if not self.updating:
+            self.updating = True
+            self.validateRow(item.row())
+            valid_data = self.getTableData()
+            self.the_window.update_rc_params_from_table(valid_data)
+            self.updating = False
+
+    def validateRow(self, row) -> bool:
+        key = self.table.item(row, 0).text()
+        value = self.table.item(row, 1).text()
+        statusItem = self.table.item(row, 2)
+
+        is_valid = False
+        try:
+            # get original value
+            original_value = mpl.rcParams[key]
+            # try to set the value to see if it's valid
+            mpl.rcParams[key] = value
+            # reset the value to the original value
+            mpl.rcParams[key] = original_value
+        except (ValueError, KeyError, TypeError):
+            icon = self.create_indicator_icon("Invalid Value")
+            statusItem.setIcon(icon)
+            statusItem.setData(Qt.UserRole, "Invalid Value")
+            statusItem.setToolTip("Invalid key/value pair, will be ignored")
+            is_valid = False
+        else:
+            if key in self.handled_elsewhere:
+                icon = self.create_indicator_icon("Handled Elsewhere")
+                statusItem.setIcon(icon)
+                statusItem.setData(Qt.UserRole, "Handled Elsewhere")
+                statusItem.setToolTip(
+                    "This key is set elsewhere in GLSE and will be ignored"
+                )
+                is_valid = False
+            else:
+                icon = self.create_indicator_icon("Valid")
+                statusItem.setIcon(icon)
+                statusItem.setData(Qt.UserRole, "Valid")
+                statusItem.setToolTip("Valid key/value pair")
+                is_valid = True
+        return is_valid
+
+    def validateTable(self):
+        for row in range(self.table.rowCount()):
+            self.validateRow(row)
+
+    def create_indicator_icon(self, status):
+        pixmap = QPixmap(20, 20)
+        pixmap.fill(Qt.transparent)
+
+        painter = QPainter(pixmap)
+        if status == "Valid":
+            color = QColor("#8aba4e")  # Green
+            painter.setBrush(color)
+            painter.drawEllipse(3, 3, 14, 14)
+        elif status == "Invalid Value":
+            color = QColor("#ed3e3e")  # Red
+            painter.setBrush(color)
+            painter.drawRect(3, 3, 14, 14)
+        elif status == "Handled Elsewhere":
+            color = QColor("#edb73b")  # Yellow
+            painter.setBrush(color)
+            painter.drawPolygon([QPoint(3, 17), QPoint(17, 17), QPoint(10, 3)])
+        else:
+            color = QColor(Qt.transparent)  # No icon
+        painter.end()
+
         return QIcon(pixmap)
