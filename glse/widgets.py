@@ -704,6 +704,7 @@ class TableWidget(QWidget):
         self.table.setHorizontalHeaderLabels(["Key", "Value", "Status"])
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
+        self.table.setColumnWidth(2, 60)
         self.layout.addWidget(self.table)
 
         self.updating = False
@@ -761,6 +762,30 @@ class TableWidget(QWidget):
         self.the_window.update_rc_params_from_table(valid_data, init=True)
         self.table.itemChanged.connect(self.onTableItemChanged)
 
+        self.addLegend()
+
+    def addLegend(self):
+        legend_layout = QHBoxLayout()
+        valid_icon = self.create_indicator_icon("Valid")
+        invalid_icon = self.create_indicator_icon("Invalid Value")
+        handled_icon = self.create_indicator_icon("Handled Elsewhere")
+
+        valid_label = QLabel()
+        valid_label.setPixmap(valid_icon.pixmap(20, 20))
+        invalid_label = QLabel()
+        invalid_label.setPixmap(invalid_icon.pixmap(20, 20))
+        handled_label = QLabel()
+        handled_label.setPixmap(handled_icon.pixmap(20, 20))
+
+        legend_layout.addWidget(QLabel("Valid key/value:"))
+        legend_layout.addWidget(valid_label)
+        legend_layout.addWidget(QLabel("Invalid key/value:"))
+        legend_layout.addWidget(invalid_label)
+        legend_layout.addWidget(QLabel("Ignored (set elsewhere in GLSE):"))
+        legend_layout.addWidget(handled_label)
+
+        self.layout.addLayout(legend_layout)
+
     def populateTable(self):
         for key, value in self.initial_dict.items():
             self.addRow(key, value, init=True)
@@ -780,6 +805,7 @@ class TableWidget(QWidget):
             keyItem.setFlags(keyItem.flags() | Qt.ItemIsEditable)
             valueItem.setFlags(valueItem.flags() | Qt.ItemIsEditable)
             statusItem.setFlags(statusItem.flags() & ~Qt.ItemIsEditable)
+            statusItem.setTextAlignment(Qt.AlignCenter)
             valid_data = self.getTableData()
             if not init:
                 self.the_window.update_rc_params_from_table(valid_data)
