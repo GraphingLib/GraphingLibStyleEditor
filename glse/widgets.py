@@ -704,7 +704,6 @@ class TableWidget(QWidget):
         self.table.setHorizontalHeaderLabels(["Key", "Value", "Status"])
         self.table.horizontalHeader().setStretchLastSection(True)
         self.table.horizontalHeader().setSectionResizeMode(QHeaderView.Stretch)
-        self.table.setColumnWidth(2, 60)
         self.layout.addWidget(self.table)
 
         self.updating = False
@@ -872,17 +871,22 @@ class TableWidget(QWidget):
             icon = self.create_indicator_icon("Invalid Value")
             statusItem.setIcon(icon)
             statusItem.setData(Qt.UserRole, "Invalid Value")
+            statusItem.setToolTip("Invalid key/value pair, will be ignored")
             is_valid = False
         else:
             if key in self.handled_elsewhere:
                 icon = self.create_indicator_icon("Handled Elsewhere")
                 statusItem.setIcon(icon)
                 statusItem.setData(Qt.UserRole, "Handled Elsewhere")
+                statusItem.setToolTip(
+                    "This key is set elsewhere in GLSE and will be ignored"
+                )
                 is_valid = False
             else:
                 icon = self.create_indicator_icon("Valid")
                 statusItem.setIcon(icon)
                 statusItem.setData(Qt.UserRole, "Valid")
+                statusItem.setToolTip("Valid key/value pair")
                 is_valid = True
         return is_valid
 
