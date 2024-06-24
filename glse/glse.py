@@ -3,6 +3,7 @@ import sys
 
 import graphinglib as gl
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+import matplotlib.pyplot as plt
 from matplotlib.pyplot import close
 from PySide6.QtCore import Qt
 from PySide6.QtGui import QCloseEvent, QKeySequence, QShortcut
@@ -44,10 +45,11 @@ class GLCanvas(FigureCanvas):
 
 
 class FigureManager(QWidget):
-    def __init__(self, params: dict, which_figure: str = "curve"):
+    def __init__(self, params: dict, which_figure: str = "figure"):
         super().__init__()
         self.layout = QVBoxLayout()
 
+        self.executing = False
         self.button = QPushButton("Load Figure from file")
         self.button.clicked.connect(self.load_python_file)
         self.save_button = QPushButton("Save Figure as image")
@@ -179,54 +181,57 @@ class FigureManager(QWidget):
         )
 
     def execute_python_file(self, filepath):
-        # Clear the canvas widget
-        for i in reversed(range(self.layout.count())):
-            widgetToRemove = self.layout.itemAt(i).widget()
-            if widgetToRemove is self.canvas and self.canvas is not None:
-                self.layout.removeWidget(widgetToRemove)
-                widgetToRemove.setParent(None)
-        close("all")
+        if not self.executing:
+            self.executing = True
+            # Clear the canvas widget
+            for i in reversed(range(self.layout.count())):
+                widgetToRemove = self.layout.itemAt(i).widget()
+                if widgetToRemove is self.canvas and self.canvas is not None:
+                    self.layout.removeWidget(widgetToRemove)
+                    widgetToRemove.setParent(None)
+            close("all")
 
-        original_show = gl.Figure.show
-        original_save = gl.Figure.save
-        original_multi_show = gl.MultiFigure.show
-        original_multi_save = gl.MultiFigure.save
-        gl.Figure.show = self.dummy_show
-        gl.Figure.save = self.dummy_save
-        gl.MultiFigure.show = self.dummy_show
-        gl.MultiFigure.save = self.dummy_save
+            original_show = gl.Figure.show
+            original_save = gl.Figure.save
+            original_multi_show = gl.MultiFigure.show
+            original_multi_save = gl.MultiFigure.save
+            gl.Figure.show = self.dummy_show
+            gl.Figure.save = self.dummy_save
+            gl.MultiFigure.show = self.dummy_show
+            gl.MultiFigure.save = self.dummy_save
 
-        # Execute the script
-        namespace = {"gl": gl, "__builtins__": __builtins__}
-        with open(filepath) as file:
-            code = compile(file.read(), filepath, "exec")
-            exec(code, namespace, namespace)
+            # Execute the script
+            namespace = {"gl": gl, "__builtins__": __builtins__}
+            with open(filepath) as file:
+                code = compile(file.read(), filepath, "exec")
+                exec(code, namespace, namespace)
 
-        gl.Figure.show = original_show
-        gl.Figure.save = original_save
-        gl.MultiFigure.show = original_multi_show
-        gl.MultiFigure.save = original_multi_save
-        # Check for figures in the namespace and display them
-        figures = {}
-        for name, var in namespace.items():
-            if isinstance(var, gl.Figure) or isinstance(var, gl.MultiFigure):
-                figures[name] = var
+            gl.Figure.show = original_show
+            gl.Figure.save = original_save
+            gl.MultiFigure.show = original_multi_show
+            gl.MultiFigure.save = original_multi_save
+            # Check for figures in the namespace and display them
+            figures = {}
+            for name, var in namespace.items():
+                if isinstance(var, gl.Figure) or isinstance(var, gl.MultiFigure):
+                    figures[name] = var
 
-        # Popup to ask user which figure to display
-        if self.chosen is None:
-            if len(figures) > 1:
-                self.chosen = self.choose_figure_from_file(figures.keys())
-            else:
-                self.chosen = list(figures.keys())[0]
+            # Popup to ask user which figure to display
+            if self.chosen is None:
+                if len(figures) > 1:
+                    self.chosen = self.choose_figure_from_file(figures.keys())
+                else:
+                    self.chosen = list(figures.keys())[0]
 
-        if self.chosen is not None:
-            fig = figures[self.chosen]
-            if isinstance(fig, gl.MultiFigure):
-                fig._prepare_multi_figure()
-            elif isinstance(fig, gl.Figure):
-                fig.figure_style = "plain"
-                fig._prepare_figure(default_params=self.params)
-            self.display_figure(fig._figure)
+            if self.chosen is not None:
+                fig = figures[self.chosen]
+                if isinstance(fig, gl.MultiFigure):
+                    fig._prepare_multi_figure()
+                elif isinstance(fig, gl.Figure):
+                    fig.figure_style = "plain"
+                    fig._prepare_figure(default_params=self.params)
+                self.display_figure(fig._figure)
+            self.executing = False
 
     def display_figure(self, fig):
         self.canvas = GLCanvas(fig)
@@ -245,6 +250,8 @@ class FigureManager(QWidget):
 
     def update(self, params):
         self.params = params
+        # Reset plt.rcParams to mpl default
+        plt.rcParams.update(plt.rcParamsDefault)
         self.execute_python_file(self.which_figure)
 
     def toggle_auto_switch(self):
@@ -280,7 +287,7 @@ class StyleManager(QDialog):
         )
         self.styleList = IndicatorListWidget()
         self.styleList.add_items(
-            gl_items=self.styles["gl"], custom_items=self.styles["customs"]
+            gl_items=self.styles["gl"], custom_items=self.styles.get("customs", [])
         )
         # self.styleList.setSelectionMode(QListWidget.SingleSelection)
         self.current_selection = None
@@ -480,6 +487,33 @@ class MainWindow(QMainWindow):
         self.mainWidget = QWidget(self)
         self.mainLayout = QVBoxLayout(self.mainWidget)
 
+        # Handled by GUI
+        self.updating_from_table = False
+        self.handled_by_gui = self.handled_elsewhere = [
+            "figure.facecolor",
+            "axes.facecolor",
+            "axes.edgecolor",
+            "axes.labelcolor",
+            "axes.linewidth",
+            "axes.prop_cycle",
+            "xtick.color",
+            "ytick.color",
+            "xtick.direction",
+            "ytick.direction",
+            "legend.facecolor",
+            "legend.edgecolor",
+            "font.family",
+            "font.size",
+            "lines.solid_capstyle",
+            "lines.dash_joinstyle",
+            "lines.dash_capstyle",
+            "grid.linestyle",
+            "grid.linewidth",
+            "grid.color",
+            "grid.alpha",
+            "axes.grid",
+        ]
+
         # Add menu bar
         self.menuBar = self.menuBar()
         self.fileMenu = self.menuBar.addMenu("File")
@@ -611,7 +645,6 @@ class MainWindow(QMainWindow):
             self.params = gl.file_manager.FileLoader(style).load()
             # update the current style
             self.current_style = style
-            self.styleNameLabel.setText("Current Style: " + self.current_style)
 
             self.updateFigure()
             # Identify the current tab
@@ -648,6 +681,7 @@ class MainWindow(QMainWindow):
                     self.original_params[section][param] = self.params[section][param]
             # clear unsaved changes
             self.unsaved_changes = {}
+            self.styleNameLabel.setText("Current Style: " + self.current_style)
 
     def save(self):
         if self.current_style == "no name":
@@ -747,6 +781,7 @@ class MainWindow(QMainWindow):
             for i in range(self.tabWidget.count()):
                 self.tabWidget.removeTab(0)
             self.create_tabs()
+            self.canvas.auto_switch_is_on = auto_switch_original
             # update the original params
             self.original_params = {}
             for section in self.params:
@@ -777,13 +812,13 @@ class MainWindow(QMainWindow):
             self.current_style = gl.get_default_style()
         self.params = gl.file_manager.FileLoader(self.current_style).load()
         self.updateFigure()
+
         # remove all tabs and recreate them to update the params
         auto_switch_original = self.canvas.auto_switch_is_on
         self.canvas.auto_switch_is_on = False
         for i in range(self.tabWidget.count()):
             self.tabWidget.removeTab(0)
         self.create_tabs()
-        self.canvas.auto_switch_is_on = auto_switch_original
         # update the original params
         self.original_params = {}
         for section in self.params:
@@ -795,6 +830,8 @@ class MainWindow(QMainWindow):
 
         # update the style name label
         self.styleNameLabel.setText("Current Style: " + self.current_style)
+
+        self.canvas.auto_switch_is_on = auto_switch_original
 
     def update_params(self, sections: str | list, params_name: str | list, value):
         if not isinstance(params_name, list):
@@ -831,6 +868,72 @@ class MainWindow(QMainWindow):
             )
         else:
             self.styleNameLabel.setText("Current Style: " + self.current_style)
+
+    def update_rc_params_from_table(self, table: dict, init=False):
+        """
+        Update the rc_params with the values in the table
+        """
+        if not self.updating_from_table:
+            self.updating_from_table = True
+            # Get the parameters to remove from the rc_params
+            table_remove = {}
+            # make list of keys that are in self.params["rc_params"] but not in self.handled_by_gui
+            possible_keys = [
+                key
+                for key in list(self.params["rc_params"].keys())
+                if key not in table and key not in self.handled_by_gui
+            ]
+            for key in possible_keys:
+                table_remove[key] = self.params["rc_params"][key]
+
+            # Remove parameters from self.params["rc_params"]
+            for key in table_remove:
+                del self.params["rc_params"][key]
+                # Check if the new value is different from the original (if it even existed in the original)
+                orig = self.original_params["rc_params"].get(key, None)
+                if orig is not None:
+                    # set value in unsaved changes dict (may have to create section/params_name key)
+                    if "rc_params" not in self.unsaved_changes:
+                        self.unsaved_changes["rc_params"] = {}
+                    self.unsaved_changes["rc_params"][key] = None
+                else:
+                    # remove value from unsaved changes dict
+                    if "rc_params" in self.unsaved_changes:
+                        if key in self.unsaved_changes["rc_params"]:
+                            del self.unsaved_changes["rc_params"][key]
+                        if not self.unsaved_changes["rc_params"]:
+                            del self.unsaved_changes["rc_params"]
+
+            for key in table:
+                self.params["rc_params"][key] = table[key]
+                # Check if the new value is different from the original (if it even existed in the original)
+                orig = self.original_params["rc_params"].get(key, None)
+                if str(orig) != table[key]:
+                    # set value in unsaved changes dict (may have to create section/params_name key)
+                    if "rc_params" not in self.unsaved_changes:
+                        self.unsaved_changes["rc_params"] = {}
+                    self.unsaved_changes["rc_params"][key] = table[key]
+                else:
+                    # remove value from unsaved changes dict
+                    if "rc_params" in self.unsaved_changes:
+                        if key in self.unsaved_changes["rc_params"]:
+                            del self.unsaved_changes["rc_params"][key]
+                        if not self.unsaved_changes["rc_params"]:
+                            del self.unsaved_changes["rc_params"]
+
+            # Update the figure
+            if not init:
+                self.updateFigure()
+
+            # Update the style name label to indicate unsaved changes
+            if self.unsaved_changes:
+                self.styleNameLabel.setText(
+                    "Current Style: " + self.current_style + " (unsaved changes)"
+                )
+            else:
+                self.styleNameLabel.setText("Current Style: " + self.current_style)
+
+            self.updating_from_table = False
 
     def view_unsaved_changes(self):
         msg = "Unsaved Changes:\n"

@@ -1,7 +1,14 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QFrame, QLabel, QMainWindow, QVBoxLayout
 
-from .widgets import Activator, CheckBox, ColorPickerWidget, Dropdown, Slider
+from .widgets import (
+    Activator,
+    CheckBox,
+    ColorPickerWidget,
+    Dropdown,
+    Slider,
+    TableWidget,
+)
 
 
 def create_figure_tab(window: QMainWindow):
@@ -216,6 +223,26 @@ def create_figure_tab(window: QMainWindow):
     #     ["rc_params", "font.weight"],
     # )
     # figureTabLayout.addWidget(font_weight_dropdown)
+
+    # Additional settings
+    additional_label = QLabel("Additional Settings:")
+    additional_label.setStyleSheet("font-weight: bold;")
+    figureTabLayout.addWidget(additional_label)
+
+    additional_line = QFrame()
+    additional_line.setFrameShape(QFrame.HLine)
+    additional_line.setFrameShadow(QFrame.Sunken)
+    figureTabLayout.addWidget(additional_line)
+
+    # Explanation for additional settings
+    additional_label = QLabel("Enter any additional rcParams here:")
+    figureTabLayout.addWidget(additional_label)
+
+    table = TableWidget(
+        window,
+        initial_dict=window.params["rc_params"],
+    )
+    figureTabLayout.addWidget(table)
 
     return figureTabLayout
 
