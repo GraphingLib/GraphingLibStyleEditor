@@ -25,6 +25,14 @@ To open the Style Editor, in a terminal, enter
 
     glse
 
+You can also open the Style Editor from a Python script as follows:
+
+.. code-block:: python
+
+    import glse
+    
+    glse.run()
+
 It is as simple as that!
 
 .. toctree::
