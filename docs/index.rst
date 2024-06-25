@@ -33,7 +33,13 @@ You can also open the Style Editor from a Python script as follows:
     
     glse.run()
 
-It is as simple as that!
+It is as simple as that! You can now start creating your own styles for GraphingLib.
+
+.. button-ref:: handbook
+   :color: primary
+
+        Go to Handbook
+
 
 .. toctree::
    :maxdepth: 1
