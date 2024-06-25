@@ -1,8 +1,6 @@
 from matplotlib import colormaps
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import (
-    QFrame,
-    QLabel,
     QMainWindow,
     QScrollArea,
     QTabWidget,
