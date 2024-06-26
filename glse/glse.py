@@ -181,57 +181,54 @@ class FigureManager(QWidget):
         )
 
     def execute_python_file(self, filepath):
-        if not self.executing:
-            self.executing = True
-            # Clear the canvas widget
-            for i in reversed(range(self.layout.count())):
-                widgetToRemove = self.layout.itemAt(i).widget()
-                if widgetToRemove is self.canvas and self.canvas is not None:
-                    self.layout.removeWidget(widgetToRemove)
-                    widgetToRemove.setParent(None)
-            close("all")
+        # Clear the canvas widget
+        for i in reversed(range(self.layout.count())):
+            widgetToRemove = self.layout.itemAt(i).widget()
+            if widgetToRemove is self.canvas and self.canvas is not None:
+                self.layout.removeWidget(widgetToRemove)
+                widgetToRemove.setParent(None)
+        close("all")
 
-            original_show = gl.Figure.show
-            original_save = gl.Figure.save
-            original_multi_show = gl.MultiFigure.show
-            original_multi_save = gl.MultiFigure.save
-            gl.Figure.show = self.dummy_show
-            gl.Figure.save = self.dummy_save
-            gl.MultiFigure.show = self.dummy_show
-            gl.MultiFigure.save = self.dummy_save
+        original_show = gl.Figure.show
+        original_save = gl.Figure.save
+        original_multi_show = gl.MultiFigure.show
+        original_multi_save = gl.MultiFigure.save
+        gl.Figure.show = self.dummy_show
+        gl.Figure.save = self.dummy_save
+        gl.MultiFigure.show = self.dummy_show
+        gl.MultiFigure.save = self.dummy_save
 
-            # Execute the script
-            namespace = {"gl": gl, "__builtins__": __builtins__}
-            with open(filepath) as file:
-                code = compile(file.read(), filepath, "exec")
-                exec(code, namespace, namespace)
+        # Execute the script
+        namespace = {"gl": gl, "__builtins__": __builtins__}
+        with open(filepath) as file:
+            code = compile(file.read(), filepath, "exec")
+            exec(code, namespace, namespace)
 
-            gl.Figure.show = original_show
-            gl.Figure.save = original_save
-            gl.MultiFigure.show = original_multi_show
-            gl.MultiFigure.save = original_multi_save
-            # Check for figures in the namespace and display them
-            figures = {}
-            for name, var in namespace.items():
-                if isinstance(var, gl.Figure) or isinstance(var, gl.MultiFigure):
-                    figures[name] = var
+        gl.Figure.show = original_show
+        gl.Figure.save = original_save
+        gl.MultiFigure.show = original_multi_show
+        gl.MultiFigure.save = original_multi_save
+        # Check for figures in the namespace and display them
+        figures = {}
+        for name, var in namespace.items():
+            if isinstance(var, gl.Figure) or isinstance(var, gl.MultiFigure):
+                figures[name] = var
 
-            # Popup to ask user which figure to display
-            if self.chosen is None:
-                if len(figures) > 1:
-                    self.chosen = self.choose_figure_from_file(figures.keys())
-                else:
-                    self.chosen = list(figures.keys())[0]
+        # Popup to ask user which figure to display
+        if self.chosen is None:
+            if len(figures) > 1:
+                self.chosen = self.choose_figure_from_file(figures.keys())
+            else:
+                self.chosen = list(figures.keys())[0]
 
-            if self.chosen is not None:
-                fig = figures[self.chosen]
-                if isinstance(fig, gl.MultiFigure):
-                    fig._prepare_multi_figure()
-                elif isinstance(fig, gl.Figure):
-                    fig.figure_style = "plain"
-                    fig._prepare_figure(default_params=self.params)
-                self.display_figure(fig._figure)
-            self.executing = False
+        if self.chosen is not None:
+            fig = figures[self.chosen]
+            if isinstance(fig, gl.MultiFigure):
+                fig._prepare_multi_figure()
+            elif isinstance(fig, gl.Figure):
+                fig.figure_style = "plain"
+                fig._prepare_figure(default_params=self.params)
+            self.display_figure(fig._figure)
 
     def display_figure(self, fig):
         self.canvas = GLCanvas(fig)
