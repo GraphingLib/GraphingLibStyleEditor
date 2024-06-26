@@ -272,7 +272,7 @@ class StyleManager(QDialog):
     def __init__(self, parent=None):
         super(StyleManager, self).__init__(parent)
         self.setWindowTitle("Manage Styles")
-        self.setGeometry(100, 100, 460, 200)
+        self.resize(200, 200)  # minimum size
 
         # Add label for default style
         self.default_style_label = QLabel(self)
@@ -344,14 +344,23 @@ class StyleManager(QDialog):
     def delete_style(self):
         if not self.current_selection:
             return
-        # check if the current selection is in custom styles
-        if self.current_selection not in gl.get_styles(gl=False):
+        # Check if the current selection is in custom styles
+        if self.current_selection not in gl.get_styles(
+            gl=False, customs=True, matplotlib=False
+        ):
             msg = "You can only delete custom styles. This style is built-in and cannot be deleted."
             QMessageBox.information(self, "Invalid Selection", msg)
             return
 
-        if self.current_selection:
+        # Check if it is also in built-in styles (twin style)
+        if self.current_selection in gl.get_styles(
+            gl=True, customs=False, matplotlib=False
+        ):
+            msg = f"This style is a custom style that overrides a built-in style of the same name. Deleting it will revert this style to the built-in version.\n\nAre you sure you want to delete the style {self.current_selection}?"
+        else:
             msg = f"Are you sure you want to delete the style {self.current_selection}?"
+
+        if self.current_selection:
             reply = QMessageBox.question(
                 self, "Delete Style", msg, QMessageBox.Yes, QMessageBox.No
             )
@@ -468,7 +477,7 @@ class MainWindow(QMainWindow):
         screen_size = screen.size()
         width = screen_size.width()
         height = screen_size.height()
-        self.resize(int(width * 0.8), int(height * 0.6))
+        self.resize(width, height)
 
         # Updatable parameters
         self.current_style = gl.get_default_style()
