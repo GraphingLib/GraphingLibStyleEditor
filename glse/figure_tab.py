@@ -1,9 +1,11 @@
 from PySide6.QtCore import Qt
 from PySide6.QtWidgets import QFrame, QLabel, QMainWindow, QVBoxLayout
 
+
 from .widgets import (
     Activator,
     CheckBox,
+    ColorCycleWidget,
     ColorPickerWidget,
     Dropdown,
     Slider,
@@ -223,6 +225,27 @@ def create_figure_tab(window: QMainWindow):
     #     ["rc_params", "font.weight"],
     # )
     # figureTabLayout.addWidget(font_weight_dropdown)
+
+    # Color cycle
+    color_cycle_label = QLabel("Color Cycle:")
+    color_cycle_label.setStyleSheet("font-weight: bold;")
+    figureTabLayout.addWidget(color_cycle_label)
+
+    color_cycle_line = QFrame()
+    color_cycle_line.setFrameShape(QFrame.HLine)
+    color_cycle_line.setFrameShadow(QFrame.Sunken)
+    figureTabLayout.addWidget(color_cycle_line)
+
+    cycle_string = window.params["rc_params"]["axes.prop_cycle"]
+    initial_colors = (
+        cycle_string.split("[")[1].split("]")[0].replace("'", "").split(", ")
+    )
+    color_cycle_widget = ColorCycleWidget(
+        window,
+        label="Pick colors for color cycle:",
+        initial_colors=initial_colors,
+    )
+    figureTabLayout.addWidget(color_cycle_widget)
 
     # Additional settings
     additional_label = QLabel("Additional Settings:")

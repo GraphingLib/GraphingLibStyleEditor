@@ -2,6 +2,7 @@ from typing import Optional
 
 import matplotlib as mpl
 from matplotlib.colors import is_color_like, to_hex
+from cycler import cycler
 from PySide6.QtCore import (
     QSortFilterProxyModel,
     QStringListModel,
@@ -916,3 +917,141 @@ class TableWidget(QWidget):
         painter.end()
 
         return QIcon(pixmap)
+
+
+class ColorCycleWidget(QWidget):
+    colorsUpdated = Signal(list)
+
+    def __init__(self, window, label="Color Cycle:", initial_colors=None):
+        super().__init__()
+        self.the_window = window
+        self.layout = QVBoxLayout(self)
+        self.label = QLabel(label)
+        self.layout.addWidget(self.label)
+        self.colors_layout = QVBoxLayout()
+        self.layout.addLayout(self.colors_layout)
+        self.add_button = QPushButton("Add Color")
+        self.add_button.clicked.connect(self.add_color)
+        self.layout.addWidget(self.add_button)
+
+        self.color_widgets = []
+
+        if initial_colors is None:
+            initial_colors = ["#ff0000", "#00ff00", "#0000ff"]
+        for color in initial_colors:
+            self.add_color_widget(color)
+
+        self.colorsUpdated.connect(self.update_window_params)
+
+    def add_color_widget(self, color="#000000"):
+        color_widget = ColorPickerForCycleWidget(
+            self, initial_color=color, param_ids=[[], []]
+        )
+        color_widget.colorChanged.connect(self.onColorChanged)
+        remove_button = QPushButton("Remove")
+        remove_button.clicked.connect(lambda: self.remove_color_widget(color_widget))
+        color_widget.layout.addWidget(remove_button)
+        self.colors_layout.addWidget(color_widget)
+        self.color_widgets.append(color_widget)
+        self.onColorChanged()
+
+    def remove_color_widget(self, color_widget):
+        self.colors_layout.removeWidget(color_widget)
+        color_widget.setParent(None)
+        self.color_widgets.remove(color_widget)
+        self.onColorChanged()
+
+    def add_color(self):
+        self.add_color_widget()
+
+    def get_colors(self):
+        return [widget.getValue() for widget in self.color_widgets]
+
+    def onColorChanged(self):
+        colors = self.get_colors()
+        self.colorsUpdated.emit(colors)
+
+    def update_window_params(self, colors):
+        cycle = cycler(color=colors)
+        self.the_window.update_params(["rc_params"], ["axes.prop_cycle"], cycle)
+
+
+class ColorPickerForCycleWidget(QWidget):
+    colorChanged = Signal(str)
+
+    def __init__(
+        self,
+        window: QWidget,
+        label="Pick a colour:",
+        initial_color="#ff0000",
+        param_ids=[],
+        activated_on_init=True,
+    ):
+        super().__init__()
+        self.the_window = window
+        self.param_sections = param_ids[0]
+        self.param_labels = param_ids[1]
+        self.first_param_section = (
+            self.param_sections[0]
+            if isinstance(self.param_sections, list) and self.param_sections
+            else None
+        )
+        self.first_param_label = (
+            self.param_labels[0]
+            if isinstance(self.param_labels, list) and self.param_labels
+            else None
+        )
+        self.layout = QHBoxLayout(self)  # type: ignore
+
+        self.label = QLabel(label)
+        self.colorButton = ColorButton(color=initial_color)
+        self.colorEdit = QLineEdit(initial_color)
+        self.colorEdit.setFixedWidth(80)  # Half the length
+        self.colorButton.colorChanged.connect(self.onColorChanged)
+        self.colorEdit.textChanged.connect(self.onColorEditTextChanged)
+
+        self.copyButton = QPushButton("Copy")
+        self.pasteButton = QPushButton("Paste")
+        self.copyButton.setFixedWidth(75)  # Shorter copy button
+        self.pasteButton.setFixedWidth(75)  # Shorter paste button
+        self.copyButton.clicked.connect(
+            lambda: QApplication.clipboard().setText(self.colorEdit.text())  # type: ignore
+        )
+        self.pasteButton.clicked.connect(
+            lambda: self.colorEdit.setText(QApplication.clipboard().text())  # type: ignore
+        )
+        self.setEnabled(activated_on_init)
+
+        self.layout.addWidget(self.label)
+        self.layout.addWidget(self.colorButton)
+        self.layout.addWidget(self.colorEdit)
+        self.layout.addWidget(self.copyButton)
+        self.layout.addWidget(self.pasteButton)
+        self.updating = False
+
+    def onColorChanged(self, color):
+        if not self.updating:
+            self.updating = True
+            if self.colorEdit.text() == "" or (
+                color != self.colorEdit.text()
+                and color != to_hex(self.colorEdit.text())
+            ):
+                self.colorEdit.setText(color)
+                self.colorChanged.emit(color)  # Emit signal with color as parameter
+            self.updating = False
+
+    def onColorEditTextChanged(self, text):
+        if not self.updating:
+            self.updating = True
+            if QColor(text).isValid():
+                self.colorButton.setColor(text)
+                self.colorChanged.emit(text)  # Emit signal with text as parameter
+            elif is_color_like(text):
+                # get the hex value of the color using matplotlib
+                text = to_hex(text)
+                self.colorButton.setColor(text)
+                self.colorChanged.emit(text)  # Emit signal with text as parameter
+            self.updating = False
+
+    def getValue(self):
+        return self.colorButton.color()
