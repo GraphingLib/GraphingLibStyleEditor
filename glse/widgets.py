@@ -80,7 +80,7 @@ class ColorPickerWidget(QWidget):
     def __init__(
         self,
         window: QMainWindow,
-        label="Pick a colour:",
+        label="Pick a color:",
         initial_color="#ff0000",
         param_ids=[],
         activated_on_init=True,
@@ -938,14 +938,14 @@ class ColorCycleWidget(QWidget):
 
         if initial_colors is None:
             initial_colors = ["#ff0000", "#00ff00", "#0000ff"]
-        for color in initial_colors:
-            self.add_color_widget(color)
+        for index, color in enumerate(initial_colors):
+            self.add_color_widget(color, index)
 
         self.colorsUpdated.connect(self.update_window_params)
 
-    def add_color_widget(self, color="#000000"):
+    def add_color_widget(self, color="#000000", index=0):
         color_widget = ColorPickerForCycleWidget(
-            self, initial_color=color, param_ids=[[], []]
+            self, initial_color=color, param_ids=[[], []], label=f"Color {index + 1}:"
         )
         color_widget.colorChanged.connect(self.onColorChanged)
         remove_button = QPushButton("Remove")
@@ -960,9 +960,13 @@ class ColorCycleWidget(QWidget):
         color_widget.setParent(None)
         self.color_widgets.remove(color_widget)
         self.onColorChanged()
+        # Change the labels of the remaining color widgets
+        for index, widget in enumerate(self.color_widgets):
+            widget.label.setText(f"Color {index + 1}:")
 
     def add_color(self):
-        self.add_color_widget()
+        num_of_colors = len(self.color_widgets)
+        self.add_color_widget(index=num_of_colors)
 
     def get_colors(self):
         return [widget.getValue() for widget in self.color_widgets]
@@ -982,8 +986,8 @@ class ColorPickerForCycleWidget(QWidget):
     def __init__(
         self,
         window: QWidget,
-        label="Pick a colour:",
-        initial_color="#ff0000",
+        label="Pick a color:",
+        initial_color="#000000",
         param_ids=[],
         activated_on_init=True,
     ):
@@ -1006,14 +1010,14 @@ class ColorPickerForCycleWidget(QWidget):
         self.label = QLabel(label)
         self.colorButton = ColorButton(color=initial_color)
         self.colorEdit = QLineEdit(initial_color)
-        self.colorEdit.setFixedWidth(80)  # Half the length
+        self.colorEdit.setFixedWidth(80)
         self.colorButton.colorChanged.connect(self.onColorChanged)
         self.colorEdit.textChanged.connect(self.onColorEditTextChanged)
 
         self.copyButton = QPushButton("Copy")
         self.pasteButton = QPushButton("Paste")
-        self.copyButton.setFixedWidth(75)  # Shorter copy button
-        self.pasteButton.setFixedWidth(75)  # Shorter paste button
+        self.copyButton.setFixedWidth(75)
+        self.pasteButton.setFixedWidth(75)
         self.copyButton.clicked.connect(
             lambda: QApplication.clipboard().setText(self.colorEdit.text())  # type: ignore
         )
