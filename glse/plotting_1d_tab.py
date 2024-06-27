@@ -352,9 +352,18 @@ def create_scatter_tab(window: QMainWindow):
         params_if_inactive=["color cycle", None],
     )
     layout.addWidget(marker_edge_color_checkbox)
+    # Connect the dropdowns to the color checker functions and pass the window object
+    window.marker_face_color_checkbox = marker_face_color_checkbox
+    window.marker_edge_color_checkbox = marker_edge_color_checkbox
+    marker_face_color_checkbox.dropdown.currentIndexChanged.connect(
+        lambda index: marker_color_checker_face(index, window)
+    )
+    marker_edge_color_checkbox.dropdown.currentIndexChanged.connect(
+        lambda index: marker_color_checker_edge(index, window)
+    )
 
     marker_size_slider = Slider(
-        window, "Marker Size:", 0, 200, 10, ["Scatter", "_marker_size"]
+        window, "Marker Size:", 0, 600, 10, ["Scatter", "_marker_size"]
     )
     layout.addWidget(marker_size_slider)
 
@@ -528,3 +537,19 @@ def create_histogram_tab(window: QMainWindow):
     layout.addWidget(pdf_std_color)
 
     return layout
+
+
+def marker_color_checker_edge(index, window):
+    # Ensures that if edge color is set to none, face color is not set to none. In the case that face color is set to none, it is changed to color cycle.
+    if index == 2:
+        current_index = window.marker_face_color_checkbox.dropdown.currentIndex()
+        if current_index == 2:
+            window.marker_face_color_checkbox.dropdown.setCurrentIndex(1)
+
+
+def marker_color_checker_face(index, window):
+    # Ensures that if face color is set to none, edge color is not set to none. In the case that edge color is set to none, it is changed to color cycle.
+    if index == 2:
+        current_index = window.marker_edge_color_checkbox.dropdown.currentIndex()
+        if current_index == 2:
+            window.marker_edge_color_checkbox.dropdown.setCurrentIndex(1)
