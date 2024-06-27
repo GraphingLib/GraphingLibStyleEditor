@@ -26,6 +26,7 @@ from PySide6.QtWidgets import (
     QTabWidget,
     QVBoxLayout,
     QWidget,
+    QSpacerItem,
 )
 from qt_material import apply_stylesheet
 
@@ -56,7 +57,6 @@ class FigureManager(QWidget):
         self.save_button.clicked.connect(self.save_figure)
 
         # Create list of example figures to choose from
-        self.horiz1_layout = QHBoxLayout()
         self.exampleFigures = QListWidget()
         self.example_figs_dict = {
             os.path.splitext(f)[0]: f
@@ -66,18 +66,42 @@ class FigureManager(QWidget):
         self.exampleFigures.setSelectionMode(QListWidget.SingleSelection)
         self.exampleFigures.itemSelectionChanged.connect(self.choose_builtin_figure)
         self.exampleFigures.setFixedWidth(200)
-        self.exampleFigures.setFixedHeight(100)
+        self.exampleFigures.setMinimumHeight(150)
+        self.exampleFigures.setMaximumHeight(300)
 
         # Add auto switch checkbox
         self.autoSwitchCheckbox = QCheckBox("Auto Switch")
         self.autoSwitchCheckbox.setChecked(True)
         self.auto_switch_is_on = True
         self.autoSwitchCheckbox.stateChanged.connect(self.toggle_auto_switch)
-        self.horiz1_layout.addWidget(self.autoSwitchCheckbox)
-        self.horiz1_layout.addWidget(self.exampleFigures)
-        self.layout.addLayout(self.horiz1_layout)
-        self.layout.addWidget(self.button)
-        self.layout.addWidget(self.save_button)
+        self.splitter = QSplitter(Qt.Vertical)
+        self.splitter.setSizes(
+            [
+                int(self.screen().size().height() * 0.7),
+                int(self.screen().size().height() * 0.3),
+            ]
+        )
+
+        self.upper_layout = QVBoxLayout()
+        self.upper_layout_widget = QWidget()
+        self.upper_layout_widget.setLayout(self.upper_layout)
+        self.bottom_layout = QHBoxLayout()
+        self.bottom_layout.setAlignment(Qt.AlignBottom)
+        self.bottom_layout.addWidget(self.exampleFigures)
+        self.bottom_right_layout = QVBoxLayout()
+        self.bottom_right_layout.setAlignment(Qt.AlignBottom)
+        self.bottom_right_layout.addWidget(self.autoSwitchCheckbox)
+        self.bottom_right_layout.addWidget(self.button)
+        self.bottom_right_layout.addWidget(self.save_button)
+        self.bottom_right_widget = QWidget()
+        self.bottom_right_widget.setLayout(self.bottom_right_layout)
+        self.bottom_layout.addWidget(self.bottom_right_widget)
+        self.bottom_content = QWidget()
+        self.bottom_content.setLayout(self.bottom_layout)
+        self.splitter.addWidget(self.upper_layout_widget)
+        self.splitter.addWidget(self.bottom_content)
+
+        self.layout.addWidget(self.splitter)
         self.setLayout(self.layout)
         self.which_figure = which_figure
         self.params = params
@@ -182,10 +206,10 @@ class FigureManager(QWidget):
 
     def execute_python_file(self, filepath):
         # Clear the canvas widget
-        for i in reversed(range(self.layout.count())):
-            widgetToRemove = self.layout.itemAt(i).widget()
+        for i in reversed(range(self.upper_layout.count())):
+            widgetToRemove = self.upper_layout.itemAt(i).widget()
             if widgetToRemove is self.canvas and self.canvas is not None:
-                self.layout.removeWidget(widgetToRemove)
+                self.upper_layout.removeWidget(widgetToRemove)
                 widgetToRemove.setParent(None)
         close("all")
 
@@ -233,7 +257,7 @@ class FigureManager(QWidget):
     def display_figure(self, fig):
         self.canvas = GLCanvas(fig)
         # add widget to layout in position 1 (after the button)
-        self.layout.insertWidget(0, self.canvas)
+        self.upper_layout.insertWidget(0, self.canvas)
         # self.layout.addWidget(self.canvas)
         # canvas.draw()
 
@@ -477,7 +501,7 @@ class MainWindow(QMainWindow):
         screen_size = screen.size()
         width = screen_size.width()
         height = screen_size.height()
-        self.resize(width, height)
+        self.resize(int(width), int(height))
 
         # Updatable parameters
         self.current_style = gl.get_default_style()
@@ -1042,6 +1066,11 @@ class MainWindow(QMainWindow):
 def run():
     app = QApplication(sys.argv)
     mainWin = MainWindow()
-    apply_stylesheet(app, theme="dark_blue.xml", css_file="gl-style-editor/custom.css")
+    apply_stylesheet(
+        app,
+        theme="dark_blue.xml",
+        css_file="glse/custom.css",
+        extra={"density_scale": -2, "font_size": 15},
+    )
     mainWin.show()
     sys.exit(app.exec_())
