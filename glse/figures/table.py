@@ -9,14 +9,11 @@ data = [
 ]
 columns = ["Time (s)", "Voltage (V)", "Current (A)"]
 rows = ["Series 1", "Series 2", "Series 3", "Series 4", "Series 5"]
-colors = ["#bfbfbf"] * 5
 
 table = gl.Table(
     cell_text=data,
     col_labels=columns,
     row_labels=rows,
-    row_colors=colors,
-    col_colors=colors,
     location="center",
 )
 

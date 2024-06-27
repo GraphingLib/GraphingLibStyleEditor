@@ -187,6 +187,73 @@ def create_table_tab(window):
     layout = QVBoxLayout()
     layout.setAlignment(Qt.AlignTop)
 
+    # cell color picker
+    initial_color = window.params["Table"]["_cell_colors"]
+    cell_color = ColorPickerWidget(
+        window,
+        label="Cell Color",
+        initial_color=initial_color,
+        param_ids=["Table", ["_cell_colors"]],
+        activated_on_init=True,
+    )
+    layout.addWidget(cell_color)
+
+    # col color picker
+    initial_color = window.params["Table"]["_col_colors"]
+    col_color = ColorPickerWidget(
+        window,
+        label="Column headers color",
+        initial_color=initial_color,
+        param_ids=["Table", ["_col_colors"]],
+        activated_on_init=True,
+    )
+    layout.addWidget(col_color)
+
+    # row color picker
+    initial_color = window.params["Table"]["_row_colors"]
+    row_color = ColorPickerWidget(
+        window,
+        label="Row headers color",
+        initial_color=initial_color,
+        param_ids=["Table", ["_row_colors"]],
+        activated_on_init=True,
+    )
+    layout.addWidget(row_color)
+
+    # edge color picker
+    initial_color = window.params["Table"]["_edge_color"]
+    edge_color = ColorPickerWidget(
+        window,
+        label="Edge Color",
+        initial_color=initial_color,
+        param_ids=["Table", ["_edge_color"]],
+        activated_on_init=True,
+    )
+    layout.addWidget(edge_color)
+
+    # edge width slider
+    edge_width_slider = Slider(
+        window=window,
+        label="Edge Width",
+        mini=0,
+        maxi=10,
+        tick_interval=1,
+        param_ids=["Table", "_edge_width"],
+        conversion_factor=1,
+    )
+    layout.addWidget(edge_width_slider)
+
+    # text color picker
+    initial_color = window.params["Table"]["_text_color"]
+    text_color = ColorPickerWidget(
+        window,
+        label="Text Color",
+        initial_color=initial_color,
+        param_ids=["Table", ["_text_color"]],
+        activated_on_init=True,
+    )
+    layout.addWidget(text_color)
+
     # cell align dropdown
     cell_align = Dropdown(
         window,
