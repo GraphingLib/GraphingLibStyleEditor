@@ -11,8 +11,8 @@ GraphingLib Style Editor |release| documentation
             position: relative;
             width: 80%;
             margin: auto;
-            padding-bottom: 42%; /* This is a 16:9 aspect ratio. Adjust as needed */
-            height: 0; /* Height is controlled by padding-bottom */
+            padding-bottom: 42%;
+            height: 0;
         }
         .large-image {
             width: 100%;
