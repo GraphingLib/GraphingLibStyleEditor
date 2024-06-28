@@ -14,6 +14,13 @@ copyright = f"{time.strftime('%Y')}, Gustave Coulombe, Yannick Lapointe"
 author = "Gustave Coulombe and Yannick Lapointe"
 release = __version__
 
+json_url = "https://www.graphinglib.org/projects/graphinglibstyleeditor/latest/_static/switcher.json"
+
+if "dev" in __version__:
+    version_match = "dev"
+else:
+    version_match = __version__
+
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration
 
@@ -45,6 +52,11 @@ html_theme_options = {
     "header_links_before_dropdown": 10,
     "pygment_light_style": "tango",
     "pygment_dark_style": "github-dark",
+    "switcher": {
+        "json_url": json_url,
+        "version_match": version_match,
+    },
+    "navbar_end": ["version-switcher", "theme-switcher", "navbar-icon-links"],
 }
 html_static_path = ["_static"]
 html_sidebars = {"handbook": [], "compatibility": []}
