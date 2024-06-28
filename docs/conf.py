@@ -57,6 +57,7 @@ html_theme_options = {
         "version_match": version_match,
     },
     "navbar_end": ["version-switcher", "theme-switcher", "navbar-icon-links"],
+    "show_version_warning_banner": True,
 }
 html_static_path = ["_static"]
 html_sidebars = {"handbook": [], "compatibility": []}
