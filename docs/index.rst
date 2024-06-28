@@ -48,7 +48,7 @@ GraphingLib Style Editor |release| documentation
         @media (max-width: 400px) {
             .image-container {
                 height: 200px;
-                width: 90%;
+                width: 97%;
             }
         }
     </style>
