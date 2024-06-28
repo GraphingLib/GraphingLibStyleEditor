@@ -90,7 +90,7 @@ def create_polygon_tab(window):
     initial_color = (
         window.params["Polygon"]["_fill_color"]
         if window.params["Polygon"]["_fill_color"] is not None
-        else "C1"
+        else "grey"
     )
     color = ColorPickerWidget(
         window,
