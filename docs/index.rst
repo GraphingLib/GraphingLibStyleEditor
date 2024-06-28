@@ -45,6 +45,11 @@ GraphingLib Style Editor |release| documentation
                 height: 250px; 
             }
         }
+        @media (max-width: 400px) {
+            .image-container {
+                height: 200px; 
+            }
+        }
     </style>
 
     <div class="image-container">
