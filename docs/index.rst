@@ -31,6 +31,11 @@ GraphingLib Style Editor |release| documentation
             opacity: 1;
             z-index: 2;
         }
+        @media only (max-width: 600px) {
+            .image-container {
+                width: 97%;
+            }
+        }
     </style>
 
     <div class="image-container">
