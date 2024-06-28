@@ -11,7 +11,8 @@ GraphingLib Style Editor |release| documentation
             position: relative;
             width: 80%;
             margin: auto;
-            height: 450px; /* Set a specific height for the container */
+            padding-bottom: 42%; /* This is a 16:9 aspect ratio. Adjust as needed */
+            height: 0; /* Height is controlled by padding-bottom */
         }
         .large-image {
             width: 100%;
@@ -29,27 +30,6 @@ GraphingLib Style Editor |release| documentation
         .fade-in {
             opacity: 1;
             z-index: 2;
-        }
-        @media (max-width: 800px) {
-            .image-container {
-                height: 300px; 
-            }
-        }
-        @media (max-width: 700px) {
-            .image-container {
-                height: 250px;
-            }
-        }
-        @media (max-width: 600px) {
-            .image-container {
-                height: 250px; 
-            }
-        }
-        @media (max-width: 400px) {
-            .image-container {
-                height: 200px;
-                width: 97%;
-            }
         }
     </style>
 
