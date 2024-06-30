@@ -87,12 +87,18 @@ def create_polygon_tab(window):
     layout.addWidget(line_style)
 
     # create fill color picker
+    initial_color = (
+        window.params["Polygon"]["_fill_color"]
+        if window.params["Polygon"]["_fill_color"] is not None
+        else "grey"
+    )
     color = ColorPickerWidget(
         window,
         "Fill Color",
         param_ids=[["Polygon", "Circle", "Rectangle"], ["_fill_color"]],
+        initial_color=initial_color,
         activated_on_init=(
-            False if window.params["Polygon"]["_fill_color"] == "" else True
+            False if window.params["Polygon"]["_fill_color"] is None else True
         ),
     )
     color_picker_widget = Activator(
@@ -105,12 +111,18 @@ def create_polygon_tab(window):
     layout.addWidget(color_picker_widget)
 
     # create edge color picker
+    initial_color = (
+        window.params["Polygon"]["_edge_color"]
+        if window.params["Polygon"]["_edge_color"] is not None
+        else "black"
+    )
     edge_color = ColorPickerWidget(
         window,
         "Edge Color",
         param_ids=[["Polygon", "Circle", "Rectangle"], ["_edge_color"]],
+        initial_color=initial_color,
         activated_on_init=(
-            False if window.params["Polygon"]["_edge_color"] == "" else True
+            False if window.params["Polygon"]["_edge_color"] is None else True
         ),
     )
     edge_color_picker_widget = Activator(
