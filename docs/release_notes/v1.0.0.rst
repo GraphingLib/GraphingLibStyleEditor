@@ -1,0 +1,13 @@
+GraphingLib Style Editor 1.0.0 Release Notes
+============================================
+
+**This is the very first release of GraphingLib's Style Editor!**
+
+The Style Editor provides:
+
+- A GUI way to create and edit GraphingLib Style files
+- Control over the styling of all the plottable objects provided in GraphingLib
+- Control over the matplotlib rcParams
+- The ability to manage your styles and set one as default
+- The ability to import a custom figure to test your style directly on it
+- The ability to export the custom figure directly from the Style Editor
