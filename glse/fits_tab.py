@@ -83,6 +83,7 @@ def create_fits_tab(window):
             ],
             ["_line_width"],
         ],
+        conversion_factor=2,
     )
     fits_layout.addWidget(line_width_slider)
 
@@ -183,6 +184,7 @@ def create_fits_tab(window):
             ],
             ["_res_line_width"],
         ],
+        conversion_factor=2,
     )
     fits_layout.addWidget(res_line_width_slider)
 

@@ -236,10 +236,10 @@ def create_table_tab(window):
         window=window,
         label="Edge Width",
         mini=0,
-        maxi=10,
+        maxi=20,
         tick_interval=1,
         param_ids=["Table", "_edge_width"],
-        conversion_factor=1,
+        conversion_factor=2,
     )
     layout.addWidget(edge_width_slider)
 
