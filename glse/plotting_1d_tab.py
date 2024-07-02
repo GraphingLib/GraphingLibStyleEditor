@@ -77,12 +77,7 @@ def create_curve_tab(window: QMainWindow):
 
     # create line_width slider
     line_width_slider = Slider(
-        window,
-        "Line Width:",
-        0,
-        20,
-        1,
-        ["Curve", "_line_width"],
+        window, "Line Width:", 0, 20, 1, ["Curve", "_line_width"], 2
     )
     layout.addWidget(line_width_slider)
 
@@ -159,7 +154,9 @@ def create_curve_tab(window: QMainWindow):
     layout.addWidget(errorbar_line)
 
     # create errorbar cap width slider
-    cap_width_slider = Slider(window, "Cap Width:", 0, 20, 1, ["Curve", "_cap_width"])
+    cap_width_slider = Slider(
+        window, "Cap Width:", 0, 20, 1, ["Curve", "_cap_width"], 2
+    )
     layout.addWidget(cap_width_slider)
 
     # create errorbar color button and "same as curve" checkbox
@@ -186,12 +183,7 @@ def create_curve_tab(window: QMainWindow):
 
     # create errorbars line width slider and "same as curve" checkbox
     errorbars_line_width_slider = Slider(
-        window,
-        "Line Width:",
-        0,
-        20,
-        1,
-        ["Curve", "_errorbars_line_width"],
+        window, "Line Width:", 0, 20, 1, ["Curve", "_errorbars_line_width"], 2
     )
     errorbars_line_width_checkbox = Activator(
         window,
@@ -204,12 +196,7 @@ def create_curve_tab(window: QMainWindow):
 
     # create errorbars cap thickness slider and "same as curve" checkbox
     cap_thickness_slider = Slider(
-        window,
-        "Cap Thickness:",
-        0,
-        20,
-        1,
-        ["Curve", "_cap_thickness"],
+        window, "Cap Thickness:", 0, 20, 1, ["Curve", "_cap_thickness"], 2
     )
     cap_thickness_checkbox = Activator(
         window,
@@ -416,16 +403,18 @@ def create_scatter_tab(window: QMainWindow):
     )
     layout.addWidget(errorbars_color_checkbox)
 
-    cap_width_slider = Slider(window, "Cap Width:", 0, 20, 1, ["Scatter", "_cap_width"])
+    cap_width_slider = Slider(
+        window, "Cap Width:", 0, 20, 1, ["Scatter", "_cap_width"], 2
+    )
     layout.addWidget(cap_width_slider)
 
     errorbars_line_width = Slider(
-        window, "Line Width:", 0, 20, 1, ["Scatter", "_errorbars_line_width"]
+        window, "Line Width:", 0, 20, 1, ["Scatter", "_errorbars_line_width"], 2
     )
     layout.addWidget(errorbars_line_width)
 
     errorbars_cap_thickness = Slider(
-        window, "Cap Thickness:", 0, 20, 1, ["Scatter", "_cap_thickness"]
+        window, "Cap Thickness:", 0, 20, 1, ["Scatter", "_cap_thickness"], 2
     )
     layout.addWidget(errorbars_cap_thickness)
 
@@ -482,7 +471,9 @@ def create_histogram_tab(window: QMainWindow):
     layout.addWidget(edge_color)
 
     # Create line width slider
-    line_width = Slider(window, "Line Width:", 0, 20, 1, ["Histogram", "_line_width"])
+    line_width = Slider(
+        window, "Line Width:", 0, 20, 1, ["Histogram", "_line_width"], 2
+    )
     layout.addWidget(line_width)
 
     pdf_label = QLabel("Probability Density Function (PDF):")

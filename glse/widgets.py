@@ -294,7 +294,7 @@ class Slider(QWidget):
         maxi,
         tick_interval,
         param_ids=[],
-        conversion_factor=2,
+        conversion_factor=1,
     ):
         super(Slider, self).__init__()
         self.the_window = window
@@ -314,8 +314,8 @@ class Slider(QWidget):
         self.factor = conversion_factor
 
         self.label = QLabel(label)
-        self.slider = QSlider(Qt.Horizontal)  # type: ignore
-        self.slider.wheelEvent = lambda event: event.ignore()  # type: ignore
+        self.slider = QSlider(Qt.Horizontal)
+        self.slider.wheelEvent = lambda event: event.ignore()
         self.slider.setMinimum(mini)
         self.slider.setMaximum(maxi)
         if isinstance(
@@ -331,6 +331,11 @@ class Slider(QWidget):
         self.slider.setTickPosition(QSlider.TicksBelow)
         self.slider.setTickInterval(tick_interval)
         self.slider.valueChanged.connect(self.onValueChanged)
+
+        self.line_edit = QLineEdit(str(initial_value))
+        self.line_edit.setFixedSize(40, 20)
+        self.line_edit.editingFinished.connect(self.onLineEditChanged)
+
         self.setEnabled(
             not isinstance(
                 self.the_window.params[self.first_param_section][
@@ -340,16 +345,26 @@ class Slider(QWidget):
             )
         )
 
-        self.layout = QHBoxLayout(self)  # type: ignore
+        self.layout = QHBoxLayout(self)
         self.layout.addWidget(self.label)
         self.layout.addWidget(self.slider)
+        self.layout.addWidget(self.line_edit)
 
     def onValueChanged(self, value):
         new_value = value / self.factor
         # turn into int if it's a whole number
         if new_value == int(new_value):
             new_value = int(new_value)
+        self.line_edit.setText(str(new_value))
         self.the_window.update_params(self.param_sections, self.param_labels, new_value)
+
+    def onLineEditChanged(self):
+        try:
+            value = float(self.line_edit.text()) * self.factor
+            self.slider.setValue(int(value))
+        except ValueError:
+            # if the user enters a non-numeric value, just ignore it
+            pass
 
     def getValue(self):
         return self.slider.value() / self.factor

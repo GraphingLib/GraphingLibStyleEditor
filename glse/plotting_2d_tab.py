@@ -172,10 +172,10 @@ def create_stream_tab(window: QMainWindow):
         window,
         "Line Width",
         0,
-        10,
+        20,
         1,
         ["Stream", "_line_width"],
-        conversion_factor=1,
+        conversion_factor=2,
     )
     layout.addWidget(line_width)
 
@@ -184,10 +184,10 @@ def create_stream_tab(window: QMainWindow):
         window,
         "Arrow Size",
         0,
-        10,
+        20,
         1,
         ["Stream", "_arrow_size"],
-        conversion_factor=1,
+        conversion_factor=2,
     )
     layout.addWidget(arrow_size)
 

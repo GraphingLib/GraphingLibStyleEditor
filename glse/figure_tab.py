@@ -65,9 +65,15 @@ def create_figure_tab(window: QMainWindow):
 
     # axes line width
     axes_line_width_slider = Slider(
-        window, "Axes Line Width:", 0, 20, 1, ["rc_params", "axes.linewidth"]
+        window, "Axes Line Width:", 0, 20, 1, ["rc_params", "axes.linewidth"], 2
     )
     figureTabLayout.addWidget(axes_line_width_slider)
+
+    # figure dpi (use slider)
+    figure_dpi_slider = Slider(
+        window, "Figure DPI:", 50, 600, 10, ["rc_params", "savefig.dpi"], 1
+    )
+    figureTabLayout.addWidget(figure_dpi_slider)
 
     # Section for axes ticks
     ticks_label = QLabel("Ticks:")
@@ -176,7 +182,7 @@ def create_figure_tab(window: QMainWindow):
 
     # grid line width (use slider)
     grid_line_width_slider = Slider(
-        window, "Grid Line Width:", 0, 20, 1, ["rc_params", "grid.linewidth"]
+        window, "Grid Line Width:", 0, 40, 1, ["rc_params", "grid.linewidth"], 2
     )
     figureTabLayout.addWidget(grid_line_width_slider)
 
@@ -212,7 +218,7 @@ def create_figure_tab(window: QMainWindow):
 
     # font size
     font_size_slider = Slider(
-        window, "Font Size:", 0, 30, 1, ["rc_params", "font.size"]
+        window, "Font Size:", 0, 50, 1, ["rc_params", "font.size"], conversion_factor=2
     )
     figureTabLayout.addWidget(font_size_slider)
 
