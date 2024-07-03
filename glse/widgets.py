@@ -1051,3 +1051,56 @@ class ColorPickerForCycleWidget(QWidget):
 
     def getValue(self):
         return self.colorButton.color()
+
+
+class TupleWidget(QWidget):
+    def __init__(self, window: QMainWindow, label, initial_values, param_ids=[]):
+        super().__init__()
+        self.the_window = window
+        self.param_sections = param_ids[0]
+        self.param_labels = param_ids[1]
+        self.first_param_section = (
+            self.param_sections[0]
+            if isinstance(self.param_sections, list)
+            else self.param_sections
+        )
+        self.first_param_label = (
+            self.param_labels[0]
+            if isinstance(self.param_labels, list)
+            else self.param_labels
+        )
+
+        self.layout = QHBoxLayout(self)
+        self.label = QLabel(label)
+        self.layout.addWidget(self.label)
+
+        self.line_edits = []
+        for index, value in enumerate(initial_values):
+            line_edit = QLineEdit()
+            line_edit.setText(str(value))
+            line_edit.textChanged.connect(self.onTextChanged)
+            self.line_edits.append(line_edit)
+            self.layout.addWidget(line_edit)
+
+    def onTextChanged(self):
+        values = []
+        for line_edit in self.line_edits:
+            text = line_edit.text()
+            try:
+                value = float(text) if "." in text else int(text)
+                values.append(value)
+            except ValueError:
+                return  # ignore the change if any value is invalid
+        print(values)
+        self.the_window.update_params(self.param_sections, self.param_labels, values)
+
+    def getValues(self):
+        values = []
+        for line_edit in self.line_edits:
+            text = line_edit.text()
+            try:
+                value = float(text) if "." in text else int(text)
+                values.append(value)
+            except ValueError:
+                values.append(None)  # or handle invalid input as needed
+        return values if None not in values else []

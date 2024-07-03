@@ -10,6 +10,7 @@ from .widgets import (
     Dropdown,
     Slider,
     TableWidget,
+    TupleWidget,
 )
 
 
@@ -68,6 +69,18 @@ def create_figure_tab(window: QMainWindow):
         window, "Axes Line Width:", 0, 20, 1, ["rc_params", "axes.linewidth"], 2
     )
     figureTabLayout.addWidget(axes_line_width_slider)
+
+    # figure size (use line edit)
+    figure_size_widget = TupleWidget(
+        window,
+        label="Figure Size (in inches):",
+        param_ids=[
+            ["Figure", "MultiFigure"],
+            "_size",
+        ],
+        initial_values=window.params["Figure"]["_size"],
+    )
+    figureTabLayout.addWidget(figure_size_widget)
 
     # figure dpi (use slider)
     figure_dpi_slider = Slider(
