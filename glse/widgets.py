@@ -734,36 +734,13 @@ class TableWidget(QWidget):
         buttonLayout.addWidget(self.deleteButton)
         self.layout.addLayout(buttonLayout)
 
-        self.handled_elsewhere = [
-            "figure.facecolor",
-            "axes.facecolor",
-            "axes.edgecolor",
-            "axes.labelcolor",
-            "axes.linewidth",
-            "axes.prop_cycle",
-            "xtick.color",
-            "ytick.color",
-            "xtick.direction",
-            "ytick.direction",
-            "legend.facecolor",
-            "legend.edgecolor",
-            "font.family",
-            "font.size",
-            "lines.solid_capstyle",
-            "lines.dash_joinstyle",
-            "lines.dash_capstyle",
-            "grid.linestyle",
-            "grid.linewidth",
-            "grid.color",
-            "grid.alpha",
-            "axes.grid",
-        ]
+        self.handled_by_gui = self.the_window.handled_by_gui
 
         self.initial_dict = initial_dict if initial_dict else {}
         self.initial_dict = {
             k: str(v)
             for k, v in self.initial_dict.items()
-            if k not in self.handled_elsewhere
+            if k not in self.handled_by_gui
         }
 
         self.populateTable()
@@ -890,7 +867,7 @@ class TableWidget(QWidget):
             statusItem.setToolTip("Invalid key/value pair, will be ignored")
             is_valid = False
         else:
-            if key in self.handled_elsewhere:
+            if key in self.handled_by_gui:
                 icon = self.create_indicator_icon("Handled Elsewhere")
                 statusItem.setIcon(icon)
                 statusItem.setData(Qt.UserRole, "Handled Elsewhere")

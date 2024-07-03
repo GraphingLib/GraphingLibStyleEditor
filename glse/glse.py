@@ -519,7 +519,7 @@ class MainWindow(QMainWindow):
 
         # Handled by GUI
         self.updating_from_table = False
-        self.handled_by_gui = self.handled_elsewhere = [
+        self.handled_by_gui = [
             "figure.facecolor",
             "axes.facecolor",
             "axes.edgecolor",
@@ -542,6 +542,7 @@ class MainWindow(QMainWindow):
             "grid.color",
             "grid.alpha",
             "axes.grid",
+            "savefig.dpi",
         ]
 
         # Add menu bar
