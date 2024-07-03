@@ -67,8 +67,8 @@ def create_point_tab(window):
     layout.setAlignment(Qt.AlignTop)
 
     initial_color = (
-        "#000000"
-        if window.params["Point"]["_color"] == "none"
+        "black"
+        if window.params["Point"]["_color"] is None
         else window.params["Point"]["_color"]
     )
     colorPicker = ColorPickerWidget(
@@ -76,20 +76,20 @@ def create_point_tab(window):
         label="Fill color",
         initial_color=initial_color,
         param_ids=["Point", ["_color"]],
-        activated_on_init=(initial_color == "none"),
+        activated_on_init=window.params["Point"]["_color"] is not None,
     )
     color_activator = Activator(
         window=window,
         widget=colorPicker,
         param_ids=["Point", "_color"],
         check_label="No fill",
-        param_if_checked="none",
+        param_if_checked=None,
     )
     layout.addWidget(color_activator)
 
     edge_initial_color = (
-        "#000000"
-        if window.params["Point"]["_edge_color"] == "none"
+        "black"
+        if window.params["Point"]["_edge_color"] is None
         else window.params["Point"]["_edge_color"]
     )
     edge_colorpicker = ColorPickerWidget(
@@ -97,17 +97,48 @@ def create_point_tab(window):
         label="Edge Color",
         initial_color=edge_initial_color,
         param_ids=["Point", ["_edge_color"]],
-        activated_on_init=True,
+        activated_on_init=window.params["Point"]["_edge_color"] is not None,
     )
     edge_color_activator = Activator(
         window=window,
         widget=edge_colorpicker,
         param_ids=["Point", "_edge_color"],
         check_label="No edge",
-        param_if_checked="none",
+        param_if_checked=None,
     )
     layout.addWidget(edge_color_activator)
 
+    # text color picker
+    initial_color = (
+        window.params["Point"]["_text_color"]
+        if window.params["Point"]["_text_color"] != "same as point"
+        else "black"
+    )
+    text_color = ColorPickerWidget(
+        window,
+        label="Text Color",
+        initial_color=initial_color,
+        param_ids=["Point", ["_text_color"]],
+        activated_on_init=True,
+    )
+    text_color_activator = Activator(
+        window,
+        text_color,
+        param_ids=["Point", "_text_color"],
+        check_label="Same as point",
+        param_if_checked="same as point",
+    )
+    layout.addWidget(text_color_activator)
+
+    # Connect the dropdowns to the color checker functions and pass the window object
+    window.point_face_color_checkbox = color_activator
+    window.point_edge_color_checkbox = edge_color_activator
+    color_activator.checkbox.stateChanged.connect(
+        lambda: point_color_checker_face(0, window)
+    )
+    edge_color_activator.checkbox.stateChanged.connect(
+        lambda: point_color_checker_edge(0, window)
+    )
     # edge_width
     edge_width_slider = Slider(
         window=window,
@@ -378,3 +409,17 @@ def create_hlines_vlines_tab(window):
     layout.addWidget(line_style_dropdown)
 
     return layout
+
+
+def point_color_checker_edge(index, window):
+    # Ensures that if edge color is set to none, face color is not set to none. In the case that face color is set to none, it is changed to color cycle.
+    if window.point_edge_color_checkbox.checkbox.isChecked():
+        if window.point_face_color_checkbox.checkbox.isChecked():
+            window.point_face_color_checkbox.checkbox.setChecked(False)
+
+
+def point_color_checker_face(index, window):
+    # Ensures that if face color is set to none, edge color is not set to none. In the case that edge color is set to none, it is changed to color cycle.
+    if window.point_face_color_checkbox.checkbox.isChecked():
+        if window.point_edge_color_checkbox.checkbox.isChecked():
+            window.point_edge_color_checkbox.checkbox.setChecked(False)
