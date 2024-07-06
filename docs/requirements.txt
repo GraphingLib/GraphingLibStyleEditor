@@ -1,4 +1,4 @@
-git+https://github.com/GraphingLib/GraphingLibStyleEditor.git
+git+https://github.com/GraphingLib/GraphingLibStyleEditor.git@doc/1.0.0
 sphinx-favicon
 sphinx-design
 sphinx-copybutton
