@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "glse"
-version = "1.0.1"
+version = "1.0.0"
 description = "A GUI editor for GraphingLib style files"
 license = "MIT"
 authors = [
