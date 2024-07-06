@@ -1070,7 +1070,7 @@ def run():
     apply_stylesheet(
         app,
         theme="dark_blue.xml",
-        css_file="glse/custom.css",
+        css_file=f"{os.path.dirname(__file__)}/custom.css",
         extra={"density_scale": -2, "font_size": 15},
     )
     mainWin.show()
