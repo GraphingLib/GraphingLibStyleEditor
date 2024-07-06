@@ -24,5 +24,4 @@ Also please summarize the changes in the title and avoid non-descriptive titles 
 - [ ] Docstrings are complete
 - [ ] If new files have been added, make sure they aren't excluded by .gitignore
 - [ ] Documentation has been updated (if applicable, see [Contributing to the documentation](https://www.graphinglib.org/en/latest/contributing.html#contributing-to-the-documentation) for details on how to make changes to the documentation)
-- [ ] If your changes modify the UI or add/change functionality, a short release note has been added to the ``docs/release_notes/upcoming_changes`` directory following the [Guidelines for submitting a pull request](https://www.graphinglib.org/en/latest/contributing.html#guideline-for-submitting-a-pull-request).
-- [ ] Links to the related issue (#....)
+- [ ] Links to the related issue (write something like "Closes issue #....")
