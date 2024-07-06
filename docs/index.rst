@@ -130,5 +130,5 @@ It is as simple as that! You can now start creating your own styles for Graphing
 
    handbook
    Compatibility <compatibility>
-   Relases <release_notes/index>
+   Releases <release_notes/index>
    Back to GraphingLib <https://www.graphinglib.org/>
