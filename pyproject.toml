@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "glse"
-version = "1.0.1"
+version = "1.1.0"
 description = "A GUI editor for GraphingLib style files"
 license = "MIT"
 authors = [
@@ -15,7 +15,7 @@ requests = "^2.31.0"
 setuptools-scm = "^8.0.4"
 qt-material = "^2.14"
 pyside6 = "^6.7.1"
-graphinglib = "~1.5.0"
+graphinglib = {git = "https://github.com/GraphingLib/GraphingLib.git"}
 
 [tool.poetry.scripts]
 glse = "glse.cli:main"
