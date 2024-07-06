@@ -1,3 +1,5 @@
+.. role:: orange
+
 ========
 Handbook
 ========
@@ -8,7 +10,13 @@ Once you have GraphingLib Style Editor installed, you can run the following comm
 
     glse
 
-You will be greeted with a GUI which allows you to create, edit, and delete styles. The Style Editor interface consists of a left panel and a right panel, which let you customize and preview styles respectively. In the left panel, you can adjust all the style settings for the currently opened style. These changes are immediately reflected in the right panel, which displays a figure with the applied customizations. You can see how the style appears in different contexts by browsing through the example figures provided within the interface. If Auto Switch is checked, the example figure will automatically switch to the most appropriate example depending on what customization tab you are currently on. Additionally, there is an option to upload a custom Python script that creates a GraphingLib figure, allowing users to apply and preview the style on their own figures.
+.. image:: _static/app_screenshots/gui_sections.png
+
+You will be greeted with a GUI which allows you to create, edit, and delete styles. The Style Editor interface consists of a left panel and a right panel, which let you customize and preview styles respectively. In the left panel, you can adjust all the style settings for the currently opened style (:orange:`1`). These changes are immediately reflected in the right panel, which displays a figure with the applied customizations. You can see how the style appears in different contexts by browsing through the example figures (:orange:`3`) provided within the interface. If Auto Switch (:orange:`4`) is checked, the example figure will automatically switch to the most appropriate example depending on what customization tab you are currently on. Additionally, there is an option to upload a custom Python script that creates a GraphingLib figure (:orange:`5`), allowing users to apply and preview the style on their own figures. Other options are available in the file menu at the top left.
+
+.. image:: _static/app_screenshots/file_options.png
+    :width: 300
+    :align: center
 
 Create a new style
 ~~~~~~~~~~~~~~~~~~
@@ -26,10 +34,18 @@ You can open an existing style by going to File → Open. You will be presented 
 
 You will notice that you can also edit GraphingLib's built-in styles (GraphingLib will prioritize your edited versions if they exist). Don't worry, this will not break anything. If you want to revert to the original style, you can always delete your custom style and GraphingLib will fall back to the built-in style again. For example, if you want to edit the "dark" style, you can open it, make your changes, and save it. GraphingLib will now use your edited version of the "dark" style instead of the built-in one. If you want to revert to the original "dark" style, you can delete your edited version of it and GraphingLib will use the built-in "dark" style again.
 
-At any time, you can click on "View unsaved changes" to see what changes you have made to the style since you last saved it. This can be useful if you want to make sure you haven't accidentally changed something you didn't mean to.
+At any time, you can click on "View unsaved changes" (:orange:`2`) to see what changes you have made to the style since you last saved it. This can be useful if you want to make sure you haven't accidentally changed something you didn't mean to.
+
+.. image:: _static/app_screenshots/unsaved_changes.png
+    :width: 400
+    :align: center
 
 Manage styles
 ~~~~~~~~~~~~~
+
+.. image:: _static/app_screenshots/manager.png
+    :width: 400
+    :align: center
 
 If you want to view and manage all your styles, you can go to File → Manage styles. Here you can see a list of all your custom styles, identified by a yellow square, as well as the built-in styles identified by a blue dot. There is a color legend to help you distinguish between built-in and custom styles. You can also identify which built-in styles are currently overridden by a custom style of the same name by the small green triangle next to the style name.
 
