@@ -3,5 +3,11 @@
         "name": "dev",
         "version": "dev",
         "url": "https://www.graphinglib.org/projects/graphinglibstyleeditor/latest/"
+    },
+    {
+        "name": "1.0",
+        "version": "1.0.0",
+        "url": "https://www.graphinglib.org/projects/graphinglibstyleeditor/doc-1.0.0/",
+        "preferred": true
     }
 ]
