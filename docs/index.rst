@@ -50,8 +50,13 @@ GraphingLib Style Editor |release| documentation
             '_static/app_screenshots/heatmap_custom.png',
             '_static/app_screenshots/histogram_dark.png',
             '_static/app_screenshots/polygon_plain.png',
-            '_static/app_screenshots/figure_custom.png'
+            '_static/app_screenshots/figure_custom.png',
         ];
+
+        imageSources.forEach((image) => {
+            const img = new Image();
+            img.src = image.src;
+        });
 
         let currentIndex = 0;
         const imageElement1 = document.getElementById('large-image1');
