@@ -1,7 +1,7 @@
 ---
 name: Custom issue template
 about: Custom template
-title: "[Issue]"
+title: "[ISSUE]"
 labels: ''
 assignees: ''
 
