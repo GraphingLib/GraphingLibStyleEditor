@@ -1,0 +1,6 @@
+GraphingLib Style Editor 1.0.1 Release Notes
+============================================
+
+Bug Fixes
+---------
+- Fixed a bug where the color of the text in the interface was not white due to css style not being applied correctly.
