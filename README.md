@@ -1,6 +1,6 @@
 # GraphingLib Style Editor
 
-![GraphingLib Style Editor logo](images/GraphingLib-SE-Logo.svg)
+![GraphingLib Style Editor logo](https://www.github.com/GraphingLib/GraphingLibStyleEditor/images/GraphingLib-SE-Logo.svg)
 
 GraphingLib Style Editor is a GUI application designed to create, edit, and manage GraphingLib styles.
 
